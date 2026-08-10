@@ -1,0 +1,17 @@
+name: Test Local Runner
+
+on:
+  push:
+
+jobs:
+  test:
+    runs-on: self-hosted
+
+    steps:
+      - name: Show runner information
+        run: |
+          echo "Hello from local runner"
+          whoami
+          hostname
+          uname -a
+          pwd

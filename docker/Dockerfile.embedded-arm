@@ -1,0 +1,64 @@
+ARG EMBEDDED_ZEPHYR_IMAGE=ghcr.io/embeddedcontainers/zephyr:arm-1.0.0SDK
+FROM ${EMBEDDED_ZEPHYR_IMAGE}
+
+ARG ZEPHYR_SDK_VERSION=1.0.0
+ARG ARDUINO_CLI_VERSION=1.5.1
+
+USER root
+
+ENV ZEPHYR_TOOLCHAIN_VARIANT=zephyr
+ENV ZEPHYR_SDK_INSTALL_DIR=/opt/toolchains/zephyr-sdk-${ZEPHYR_SDK_VERSION}
+ENV ARDUINO_UPDATER_ENABLE_NOTIFICATION=false
+ENV PATH=/opt/venv/bin:${ZEPHYR_SDK_INSTALL_DIR}/gnu/arm-zephyr-eabi/bin:${PATH}
+
+WORKDIR /workdir
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        ca-certificates \
+        curl \
+        g++ \
+        git \
+        make \
+    && rm -rf /var/lib/apt/lists/* \
+    && python3 -m pip install --break-system-packages --no-cache-dir \
+        'PyYAML>=6.0' \
+        anytree \
+        canopen \
+        cbor2 \
+        click \
+        'cryptography>=40.0.0' \
+        intelhex \
+        jsonschema \
+        packaging \
+        'patool>=2.0.0' \
+        'psutil>=5.6.6' \
+        'pyelftools>=0.29' \
+        pykwalify \
+        pylink-square \
+        pyserial \
+        pytest \
+        'requests>=2.32.4' \
+        'reuse>=6.0.0' \
+        semver \
+        setuptools \
+        'tqdm>=4.67.1' \
+        'west>=0.14.0' \
+    && python3 -c "import jsonschema; import cryptography; import cbor2" \
+    && west --version \
+    && cmake --version \
+    && ninja --version \
+    && make --version \
+    && git --version \
+    && test -d ${ZEPHYR_SDK_INSTALL_DIR} \
+    && test -x ${ZEPHYR_SDK_INSTALL_DIR}/gnu/arm-zephyr-eabi/bin/arm-zephyr-eabi-gcc \
+    && arm-zephyr-eabi-gcc --version
+
+RUN git clone --recursive --depth=1 https://github.com/sisong/HPatchLite.git /opt/HPatchLite \
+    && make -C /opt/HPatchLite \
+    && install -m 0755 /opt/HPatchLite/hdiffi /usr/local/bin/hdiffi \
+    && hdiffi -v
+
+RUN curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh \
+        | BINDIR=/usr/local/bin sh -s ${ARDUINO_CLI_VERSION} \
+    && arduino-cli version

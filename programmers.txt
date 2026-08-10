@@ -1,0 +1,11 @@
+none.name=No programmer
+
+ymodem.name=YMODEM Application Upgrade
+ymodem.communication=serial
+ymodem.protocol=ymodem
+ymodem.program.tool=ymodem_upload
+
+rtduo_vscode.name=RTDuo VS Code
+rtduo_vscode.communication=none
+rtduo_vscode.protocol=rtduo_vscode
+rtduo_vscode.program.tool=rtduo_vscode

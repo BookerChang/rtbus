@@ -1,0 +1,17 @@
+RTBus RTDuo Arduino Platform
+Copyright (c) 2026 RTBus contributors.
+
+This project was initially extracted from WisNodeZ Arduino prototype work and
+renamed for the RTBus RTDuo package identity.
+
+The public Arduino package identity is:
+
+    rtbus:rtduo
+
+Some internal runtime ABI symbols, enum names, and compatibility macros still
+use WisNodeZ-derived names. These names are retained to avoid breaking the
+runtime/application ABI during the initial extraction.
+
+RAKWireless board names such as RAK4631, RAK3172, RAK11720, and RAK4200 refer
+to the target hardware modules and boards. They do not imply that this package
+is published by or officially supported by RAKWireless.

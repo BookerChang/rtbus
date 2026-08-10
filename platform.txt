@@ -1,0 +1,75 @@
+name=RTDuo Arduino Platform
+version=0.1.0
+
+compiler.path={runtime.tools.arm-zephyr-eabi.path}/bin/
+compiler.host.path={runtime.tools.tcc.path}/
+compiler.c.cmd=arm-zephyr-eabi-gcc
+compiler.cpp.cmd=arm-zephyr-eabi-g++
+compiler.host.cmd=bin/tcc
+compiler.host.cmd.windows=tcc.exe
+compiler.host.cmd.linux=bin/tcc
+compiler.host.cmd.macosx=bin/tcc
+compiler.ar.cmd=arm-zephyr-eabi-ar
+compiler.objcopy.cmd=arm-zephyr-eabi-objcopy
+compiler.size.cmd=arm-zephyr-eabi-size
+compiler.host.flags=
+compiler.host.flags.linux=-B{runtime.tools.tcc.path}/lib/tcc
+compiler.host.flags.macosx=-B{runtime.tools.tcc.path}/lib/tcc
+
+compiler.warning_flags=-Wall -Wextra
+compiler.common.flags=-mcpu={build.mcu} -mthumb -mabi=aapcs -ffreestanding -fdata-sections -ffunction-sections -fno-common -Os
+compiler.c.flags=-c {compiler.common.flags}
+compiler.cpp.flags=-c {compiler.common.flags} -fno-exceptions -fno-rtti -fno-threadsafe-statics -std=gnu++17
+compiler.S.flags=-c {compiler.common.flags} -x assembler-with-cpp
+compiler.ar.flags=rcs
+
+build.extra_flags=-DWISNODEZ_APPLICATION_SHORT_NAMES
+build.abi.includes=-I{runtime.platform.path}/system/include
+build.application.pack=true
+build.application.name=application
+build.application.version.file={runtime.platform.path}/system/IMGTOOL_VERSION
+build.application.build.file={runtime.platform.path}/system/IMGTOOL_VERSION.build
+build.application.export.path={build.source.path}/build/{build.board}
+tools.application_pack.header.path={runtime.platform.path}/system/header.c
+tools.ymodem_upload.cmd.path={runtime.tools.tcc.path}/bin/tcc
+tools.ymodem_upload.cmd.path.windows={runtime.tools.tcc.path}/tcc.exe
+tools.ymodem_upload.cmd.path.linux={runtime.tools.tcc.path}/bin/tcc
+tools.ymodem_upload.cmd.path.macosx={runtime.tools.tcc.path}/bin/tcc
+tools.ymodem_upload.flags=
+tools.ymodem_upload.flags.linux=-B{runtime.tools.tcc.path}/lib/tcc
+tools.ymodem_upload.flags.macosx=-B{runtime.tools.tcc.path}/lib/tcc
+tools.ymodem_upload.source.path={runtime.platform.path}/system/ymodem_upload.c
+tools.ymodem_upload.upload.params.quiet=
+tools.ymodem_upload.upload.params.verbose=
+tools.ymodem_upload.upload.pattern="{cmd.path}" -x c -std=c99 -Wall -Wextra -Werror -O2 -run "{runtime.platform.path}/system/ymodem_upload.c" "{serial.port}" "{upload.speed}" "{build.path}/{build.project_name}.signed.bin"
+tools.ymodem_upload.program.params.quiet=
+tools.ymodem_upload.program.params.verbose=
+tools.ymodem_upload.program.pattern="{cmd.path}" -x c -std=c99 -Wall -Wextra -Werror -O2 -run "{runtime.platform.path}/system/ymodem_upload.c" "{serial.port}" "{upload.speed}" "{build.path}/{build.project_name}.signed.bin"
+tools.rtduo_vscode.cmd=code
+tools.rtduo_vscode.cmd.path=code
+tools.rtduo_vscode.program.params.quiet=
+tools.rtduo_vscode.program.params.verbose=
+tools.rtduo_vscode.program.pattern="{cmd.path}" --extensionDevelopmentPath "{runtime.platform.path}/vscode-extension/rtduo-platform" "{runtime.platform.path}"
+tools.rtduo_vscode.program.pattern.windows=powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Start-Process -FilePath 'code' -ArgumentList @('--extensionDevelopmentPath','{runtime.platform.path}\vscode-extension\rtduo-platform','{runtime.platform.path}')"
+tools.rtduo_vscode.erase.params.quiet=
+tools.rtduo_vscode.erase.params.verbose=
+tools.rtduo_vscode.erase.pattern="{cmd.path}" --extensionDevelopmentPath "{runtime.platform.path}/vscode-extension/rtduo-platform" "{runtime.platform.path}"
+tools.rtduo_vscode.erase.pattern.windows=powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Start-Process -FilePath 'code' -ArgumentList @('--extensionDevelopmentPath','{runtime.platform.path}\vscode-extension\rtduo-platform','{runtime.platform.path}')"
+tools.rtduo_vscode.bootloader.params.quiet=
+tools.rtduo_vscode.bootloader.params.verbose=
+tools.rtduo_vscode.bootloader.pattern="{cmd.path}" --extensionDevelopmentPath "{runtime.platform.path}/vscode-extension/rtduo-platform" "{runtime.platform.path}"
+tools.rtduo_vscode.bootloader.pattern.windows=powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Start-Process -FilePath 'code' -ArgumentList @('--extensionDevelopmentPath','{runtime.platform.path}\vscode-extension\rtduo-platform','{runtime.platform.path}')"
+
+recipe.c.o.pattern="{compiler.path}{compiler.c.cmd}" {compiler.c.flags} {compiler.warning_flags} -DF_CPU={build.f_cpu} -DARDUINO=10819 -DARDUINO_{build.board} -DARDUINO_ARCH_{build.arch} {build.extra_flags} {build.abi.includes} {includes} "{source_file}" -o "{object_file}"
+recipe.cpp.o.pattern="{compiler.path}{compiler.cpp.cmd}" {compiler.cpp.flags} {compiler.warning_flags} -DF_CPU={build.f_cpu} -DARDUINO=10819 -DARDUINO_{build.board} -DARDUINO_ARCH_{build.arch} {build.extra_flags} {build.abi.includes} {includes} "{source_file}" -o "{object_file}"
+recipe.S.o.pattern="{compiler.path}{compiler.c.cmd}" {compiler.S.flags} {compiler.warning_flags} -DF_CPU={build.f_cpu} -DARDUINO=10819 -DARDUINO_{build.board} -DARDUINO_ARCH_{build.arch} {build.extra_flags} {build.abi.includes} {includes} "{source_file}" -o "{object_file}"
+recipe.ar.pattern="{compiler.path}{compiler.ar.cmd}" {compiler.ar.flags} "{archive_file_path}" "{object_file}"
+recipe.c.combine.pattern="{compiler.path}{compiler.cpp.cmd}" {compiler.common.flags} -nostdlib -Wl,--gc-sections -Wl,-Map,{build.path}/{build.project_name}.map -T{build.core.path}/linker.ld -o "{build.path}/{build.project_name}.elf" -Wl,--start-group {object_files} "{archive_file_path}" -Wl,--end-group
+recipe.objcopy.hex.pattern="{compiler.path}{compiler.objcopy.cmd}" -O ihex "{build.path}/{build.project_name}.elf" "{build.path}/{build.project_name}.hex"
+recipe.objcopy.bin.pattern="{compiler.path}{compiler.objcopy.cmd}" -O binary "{build.path}/{build.project_name}.elf" "{build.path}/{build.project_name}.bin"
+recipe.size.pattern="{compiler.path}{compiler.size.cmd}" -A "{build.path}/{build.project_name}.elf"
+recipe.size.regex=^(?:\.text|\.rodata|\.data)\s+([0-9]+).*
+recipe.size.regex.data=^(?:\.data|\.bss)\s+([0-9]+).*
+
+recipe.hooks.objcopy.postobjcopy.1.pattern="{compiler.host.path}{compiler.host.cmd}" {compiler.host.flags} -x c -std=c99 -Wall -Wextra -Werror -O2 -o "{build.path}/application_pack.exe" "{tools.application_pack.header.path}"
+recipe.hooks.objcopy.postobjcopy.2.pattern="{build.path}/application_pack.exe" "{build.application.pack}" "{build.project_name}" "{build.path}/{build.project_name}.bin" "{build.path}/{build.project_name}.payload.bin" "{build.path}/{build.project_name}.map" "{build.path}/{build.project_name}.signed.bin" "{build.path}/{build.project_name}.signed.hex" "{build.path}/slot_address.txt" "{build.application.name}" "{build.application.version.file}" "{build.application.build.file}" "{build.path}/{build.project_name}.hex" "{build.path}/{build.project_name}.elf" "{build.application.export.path}"

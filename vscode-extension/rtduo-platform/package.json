@@ -1,0 +1,44 @@
+{
+  "name": "rtduo-platform",
+  "displayName": "RTDuo Platform",
+  "description": "Build and use the RTDuo Arduino builder environment through Docker or Podman.",
+  "version": "0.0.1",
+  "publisher": "rtbus",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onCommand:rtduo.buildBuilderImage",
+    "onCommand:rtduo.compileArduinoExample",
+    "onCommand:rtduo.openBuilderShell"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "terminal": {
+      "profiles": [
+        {
+          "id": "rtduo.builderShell",
+          "title": "RTDuo Builder Shell"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "rtduo.buildBuilderImage",
+        "title": "RTDuo: Build Builder Image"
+      },
+      {
+        "command": "rtduo.compileArduinoExample",
+        "title": "RTDuo: Compile Arduino Example"
+      },
+      {
+        "command": "rtduo.openBuilderShell",
+        "title": "RTDuo: Open Builder Shell"
+      }
+    ]
+  }
+}

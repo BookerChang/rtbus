@@ -1,0 +1,14 @@
+.arduino/
+.cache/
+.agents/
+.codex/
+build*/
+dist/
+*.elf
+*.hex
+*.bin
+*.map
+*.lst
+*.o
+*.a
+*.d
