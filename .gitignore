@@ -2,8 +2,15 @@
 .cache/
 .agents/
 .codex/
+/.west/
+/bootloader/
+/modules/
+/tools/
+/zephyr/
 build*/
 dist/
+runtime/zephyr/runtime/.generated/
+zephyr-share/
 *.elf
 *.hex
 *.bin

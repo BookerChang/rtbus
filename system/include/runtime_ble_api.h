@@ -22,10 +22,10 @@ typedef uintptr_t runtime_ble_conn_t;
 
 static inline int runtime_ble_adv_start(void)
 {
-    runtime_schedule_post_api_t post;
+    runtime_rtbus_post_api_t post;
 
-    post = WZ_API_FN(WISNODEZ_API_SLOT_SCHEDULE_POST,
-                     runtime_schedule_post_api_t);
+    post = WZ_API_FN(WISNODEZ_API_SLOT_RTBUS_POST,
+                     runtime_rtbus_post_api_t);
     if (post == 0) {
         return -WZ_ENOSYS;
     }

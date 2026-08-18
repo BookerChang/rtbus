@@ -1,0 +1,39 @@
+mainmenu "WisNodeZ runtime configuration"
+
+config NORDIC_HV_REGOUT0_3V3
+	bool "Set Nordic HV REGOUT0 and SX1262 TCXO to 3.3 V"
+	depends on SOC_NRF52840
+	help
+	  Program UICR REGOUT0 for a 3.3 V VDD and GPIO domain when the
+	  nRF52840 is powered through VDDH, and configure the SX1262 DIO3
+	  TCXO control voltage for 3.3 V. The device resets once after
+	  changing UICR. Leave this disabled to preserve the existing
+	  REGOUT0 setting and use the default TCXO voltage from the board runtime
+	  overlay.
+
+config WISNODEZ_API_TABLE_BASE
+	hex "WisNodeZ native application API table base address"
+	default 0x2003FF00
+	help
+	  Fixed RAM address used by the runtime and native application payload to
+	  exchange the WisNodeZ API table. Board profiles with smaller SRAM must
+	  place this inside their reserved shared_ram devicetree node.
+
+config WISNODEZ_OTA_SHARED_DATA_ADDR
+	hex "WisNodeZ OTA monitor shared data address"
+	default 0x2003F400
+	help
+	  Fixed RAM address used by the runtime/FUOTA code and MCUboot to exchange
+	  OTA monitor state. Board profiles with smaller SRAM must override this
+	  together with the bootloader configuration.
+
+config RUNTIME_POOL_SIZE
+	int "Runtime schedule parameter pool size"
+	default 4096
+	range 256 65536
+	help
+	  Static byte pool passed to schedule_init() for runtime event parameter
+	  allocation. Small RAM targets can override this in their board
+	  runtime.conf.
+
+source "Kconfig.zephyr"

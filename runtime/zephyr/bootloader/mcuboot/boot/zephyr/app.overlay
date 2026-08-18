@@ -1,0 +1,129 @@
+/ {
+	chosen {
+		zephyr,console = &cdc_acm_uart0;
+		/delete-property/ zephyr,shell-uart;
+		/delete-property/ zephyr,uart-mcumgr;
+		/delete-property/ zephyr,bt-mon-uart;
+		/delete-property/ zephyr,bt-c2h-uart;
+		zephyr,code-partition = &boot_partition;
+	};
+
+};
+
+&reg1 {
+	regulator-initial-mode = <NRF5X_REG_MODE_DCDC>;
+};
+
+&adc {
+	status = "disabled";
+};
+
+&gpio0 {
+	status = "disabled";
+};
+
+&gpio1 {
+	status = "disabled";
+};
+
+&gpiote {
+	status = "disabled";
+};
+
+&i2c0 {
+	status = "disabled";
+};
+
+&qspi {
+	status = "disabled";
+};
+
+&spi1 {
+	status = "disabled";
+};
+
+&uart0 {
+	status = "disabled";
+};
+
+&uart1 {
+	status = "disabled";
+};
+
+&zephyr_udc0 {
+	status = "okay";
+
+	cdc_acm_uart0: cdc_acm_uart0 {
+		compatible = "zephyr,cdc-acm-uart";
+	};
+};
+
+&flash0 {
+	partitions {
+		ranges;
+		#address-cells = <1>;
+		#size-cells = <1>;
+		/delete-node/ partition@c000;
+		/delete-node/ partition@82000;
+
+		boot_partition: partition@0 {
+			compatible = "zephyr,mapped-partition";
+			label = "mcuboot";
+			reg = <0x00000000 0x00010000>; /* 64 KB */
+		};
+
+		slot0_partition: partition@10000 {
+			compatible = "zephyr,mapped-partition";
+			label = "image-0";
+			reg = <0x00010000 0x0006E000>; /* 448 KB */
+		};
+
+		slot1_partition: partition@7E000 {
+			compatible = "zephyr,mapped-partition";
+			label = "image-1";
+			reg = <0x0007E000 0x0006E000>; /* 448 KB */
+		};
+
+		patch_partition: partition@EC000 {
+			compatible = "zephyr,mapped-partition";
+			label = "patch";
+			reg = <0x000EC000 0x0000A000>; /* 40 KB */
+		};
+
+		scratch_partition: partition@F6000 {
+			compatible = "zephyr,mapped-partition";
+			label = "scratch";
+			reg = <0x000F6000 0x00002000>; /* 8 KB */
+		};
+
+		storage_partition: partition@F8000 {
+			compatible = "zephyr,mapped-partition";
+			label = "storage";
+			reg = <0x000F8000 0x00004000>; /* 16 KB */
+		};
+
+		my_at_storage: partition@FC000 {
+			compatible = "fixed-partition";
+			label = "at_storage";
+			reg = <0x000FC000 0x00004000>; /* 16 KB */
+		};
+	};
+};
+
+&sram0 {
+    /* 假設 RAM 總大小 256KB (0x40000)，我們取出最後 1KB 做為共享區 */
+    reg = <0x20000000 0x3FF00>; 
+
+    reserved-memory {
+        #address-cells = <1>;
+        #size-cells = <1>;
+        ranges;
+
+        /* 定義共享區為固定位址 0x2003FF00 */
+        shared_ram: shared_mem@2003FF00 {
+            compatible = "zephyr,memory-region";
+            reg = <0x2003FF00 0x100>;
+            zephyr,memory-region = "SHARED_RAM";
+        };
+    };
+};

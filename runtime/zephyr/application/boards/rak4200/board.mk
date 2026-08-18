@@ -1,0 +1,1 @@
+TARGET_MCU:=cortex-m0plus

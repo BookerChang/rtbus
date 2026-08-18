@@ -1,0 +1,13 @@
+identifier: rak4200
+name: RAKwireless RAK4200
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+  - gnuarmemb
+ram: 20
+flash: 128
+supported:
+  - gpio
+  - uart
+vendor: rakwireless

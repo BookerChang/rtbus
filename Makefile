@@ -8,8 +8,15 @@ ARDUINO_PACKAGE_ROOT ?= build.arduino/package
 ARDUINO_PACKAGE_DIR ?= $(ARDUINO_PACKAGE_ROOT)/hardware/rtbus/rtduo
 ARDUINO_SKETCH ?= libraries/RTDuo/examples/HelloWorld
 ARDUINO_BUILD_ROOT ?= build.arduino
+BOOTLOADER ?= bootloader
+BOOTLOADER_APP_DIR ?= runtime/zephyr/bootloader
+RUNTIME_APP_DIR ?= runtime/zephyr/runtime
+APPLICATION_APP_DIR ?= runtime/zephyr/application
+ZEPHYR_BUILD_ROOT ?= build.zephyr
+ZEPHYR_BUILD_TMP_ROOT ?= build.zephyr.tmp
+ZEPHYR_SHARE_ROOT ?= zephyr-share
 
-BOARD_PROFILE ?= rak4631
+BOARD_PROFILE ?=
 ARDUINO_BOARD_ID_rak4631 := RAK4631
 ARDUINO_BOARD_ID_rak3172 := RAK3172
 ARDUINO_BOARD_ID_rak3172f := RAK3172F
@@ -20,13 +27,49 @@ ARDUINO_BOARD_ID_rak4200 := RAK4200
 ARDUINO_BOARD_ID ?= $(ARDUINO_BOARD_ID_$(BOARD_PROFILE))
 ARDUINO_FQBN ?= rtbus:rtduo:$(ARDUINO_BOARD_ID)
 ARDUINO_APPLICATION_BUILD_DIR ?= $(ARDUINO_BUILD_ROOT)/$(BOARD_PROFILE)/application
+ARDUINO_SKETCH_NAME ?= $(notdir $(ARDUINO_SKETCH))
+ARDUINO_APPLICATION_JFLASH_HEX ?= $(ARDUINO_SKETCH_NAME).ino.signed.hex
 
 ZEPHYR_SDK_VERSION ?= 1.0.0
 ARDUINO_LOCAL_COMPILER_PATH ?= /opt/toolchains/zephyr-sdk-$(ZEPHYR_SDK_VERSION)/gnu/arm-zephyr-eabi/bin/
 ARDUINO_LOCAL_HOST_COMPILER_PATH ?= /usr/bin/
 ARDUINO_LOCAL_HOST_COMPILER_CMD ?= gcc
+JLINK_CMD ?= myjlink
+JLINK_SERVER_DIR ?= /home/usera/001.mypjt/002.server_segger
+JLINK_EXE ?= $(JLINK_SERVER_DIR)/.res/JLink.linux/JLinkExe
+JLINK_IP ?= 127.0.0.1:19020
+JLINK_IF ?= SWD
+JLINK_SPEED ?= 4000
+JLINK_ERASE_SCRIPT ?= /tmp/rtbus-jlink-erase.jlink
+RUNTIME_JFLASH_HEX ?= zephyr.signed.hex
+BOOTLOADER_JFLASH_HEX ?= zephyr.hex
+APPLICATION_JFLASH_HEX ?= application.signed.hex
+APPLICATION_FLASH_DIR ?= $(if $(wildcard $(ARDUINO_APPLICATION_BUILD_DIR)/$(ARDUINO_APPLICATION_JFLASH_HEX)),$(ARDUINO_APPLICATION_BUILD_DIR),$(APPLICATION_BUILD_DIR))
+APPLICATION_FLASH_HEX ?= $(if $(wildcard $(ARDUINO_APPLICATION_BUILD_DIR)/$(ARDUINO_APPLICATION_JFLASH_HEX)),$(ARDUINO_APPLICATION_JFLASH_HEX),$(APPLICATION_JFLASH_HEX))
+EMPTY :=
+SPACE := $(EMPTY) $(EMPTY)
 
 include docker/docker.mk
+include runtime/zephyr/profiles.mk
+include select.mk
+
+ifneq ($(strip $(BOARD_PROFILE)),)
+BOARD_PROFILE_DIR := $(BOARD_PROFILE_ROOT)/$(BOARD_PROFILE)
+BOARD_PROFILE_MK := $(BOARD_PROFILE_DIR)/profile.mk
+ifeq ($(wildcard $(BOARD_PROFILE_MK)),)
+$(error Unsupported BOARD_PROFILE=$(BOARD_PROFILE). Use one of: $(BOARD_PROFILE_CHOICES))
+endif
+include $(BOARD_PROFILE_MK)
+endif
+BOARDS ?= $(ZEPHYR_BOARD)
+BOARD_ROOTS_DOCKER = $(foreach root,$(BOARD_ROOTS),$(DOCKER_WORK)/$(root))
+BOARD_ROOT_CMAKE = $(subst $(SPACE),;,$(strip $(BOARD_ROOTS_DOCKER)))
+BOARD_ROOT_ARG = $(if $(strip $(BOARD_ROOTS)),-DBOARD_ROOT="$(BOARD_ROOT_CMAKE)",)
+docker_path = $(if $(filter /%,$(1)),$(1),$(DOCKER_WORK)/$(1))
+
+include runtime/zephyr/runtime/runtime.mk
+include runtime/zephyr/bootloader/bootloader.mk
+include runtime/zephyr/application/application.mk
 
 DOCKER_RUN = $(VM) run --rm -v $(CURDIR):$(DOCKER_WORK) -w $(DOCKER_WORK) $(DOCKER_IMAGE)
 ARDUINO_LOCAL_BUILD_PROPERTIES = \
@@ -39,6 +82,57 @@ ARDUINO_LOCAL_BUILD_PROPERTIES = \
 
 .PHONY: builder.image
 builder.image: docker.image
+
+.PHONY: $(BOARD_PROFILE_CHOICES)
+$(BOARD_PROFILE_CHOICES):
+	$(MAKE) runtime BOARD_PROFILE=$@
+
+.PHONY: board.profile
+board.profile:
+	@printf 'BOARD_PROFILE=%s\n' '$(BOARD_PROFILE)'
+	@printf 'BOARD_PROFILE_DIR=%s\n' '$(BOARD_PROFILE_DIR)'
+	@printf 'PROFILE_NAME=%s\n' '$(PROFILE_NAME)'
+	@printf 'BOARDS=%s\n' '$(BOARDS)'
+	@printf 'ZEPHYR_BOARD=%s\n' '$(ZEPHYR_BOARD)'
+	@printf 'ZEPHYR_BOARD_SOURCE=%s\n' '$(ZEPHYR_BOARD_SOURCE)'
+	@printf 'ZEPHYR_SOC=%s\n' '$(ZEPHYR_SOC)'
+	@printf 'BOARD_ROOTS=%s\n' '$(BOARD_ROOTS)'
+	@printf 'BOARD_ROOT_CMAKE=%s\n' '$(BOARD_ROOT_CMAKE)'
+	@printf 'BOARD_ROOT_ARG=%s\n' '$(BOARD_ROOT_ARG)'
+	@printf 'JLINK_TARGET=%s\n' '$(JLINK_TARGET)'
+	@printf 'JLINK_EXE=%s\n' '$(JLINK_EXE)'
+	@printf 'JLINK_IP=%s\n' '$(JLINK_IP)'
+	@printf 'RUNTIME_BOARD_DIR=%s\n' '$(RUNTIME_BOARD_DIR)'
+	@printf 'BOARD_RUNTIME_CONF=%s\n' '$(BOARD_RUNTIME_CONF)'
+	@printf 'BOARD_RUNTIME_OVERLAY=%s\n' '$(BOARD_RUNTIME_OVERLAY)'
+	@printf 'BOOTLOADER_BOARD_DIR=%s\n' '$(BOOTLOADER_BOARD_DIR)'
+	@printf 'BOARD_BOOTLOADER_CONF=%s\n' '$(BOARD_BOOTLOADER_CONF)'
+	@printf 'BOARD_BOOTLOADER_OVERLAY=%s\n' '$(BOARD_BOOTLOADER_OVERLAY)'
+	@printf 'APPLICATION_APP_DIR=%s\n' '$(APPLICATION_APP_DIR)'
+	@printf 'APPLICATION_BUILD_DIR=%s\n' '$(APPLICATION_BUILD_DIR)'
+
+.PHONY: jflash_erase
+jflash_erase:
+	$(JLINK_CMD).device $(JLINK_TARGET)
+	@printf 'si 1\nspeed auto\nr\nh\nerase\nr\nq\n' > $(JLINK_ERASE_SCRIPT)
+	$(JLINK_EXE) -device $(JLINK_TARGET) -if $(JLINK_IF) -speed $(JLINK_SPEED) -autoconnect 1 -nogui 1 -IP $(JLINK_IP) -CommanderScript $(JLINK_ERASE_SCRIPT)
+	@rm -f $(JLINK_ERASE_SCRIPT)
+	@echo "current time: $$(date +'%Y-%m-%d %H:%M:%S')"
+
+.PHONY: jflash_write.runtime
+jflash_write.runtime:
+	$(JLINK_CMD).device $(JLINK_TARGET)
+	@test -f "$(RUNTIME_BUILD_DIR)/zephyr/$(RUNTIME_JFLASH_HEX)" || { echo "Missing $(RUNTIME_BUILD_DIR)/zephyr/$(RUNTIME_JFLASH_HEX). Rebuild runtime and ensure MCUboot image generation is enabled." >&2; exit 1; }
+	cd $(RUNTIME_BUILD_DIR)/zephyr && $(JLINK_CMD).write $(RUNTIME_JFLASH_HEX)
+	cd $(BOOTLOADER_BUILD_DIR)/zephyr && $(JLINK_CMD).write $(BOOTLOADER_JFLASH_HEX)
+	@echo "current time: $$(date +'%Y-%m-%d %H:%M:%S')"
+
+.PHONY: jflash_write.application
+jflash_write.application:
+	$(JLINK_CMD).device $(JLINK_TARGET)
+	@test -f "$(APPLICATION_FLASH_DIR)/$(APPLICATION_FLASH_HEX)" || { echo "Missing $(APPLICATION_FLASH_DIR)/$(APPLICATION_FLASH_HEX). Rebuild with arduino.compile or application for BOARD_PROFILE=$(BOARD_PROFILE)." >&2; exit 1; }
+	cd $(APPLICATION_FLASH_DIR) && $(JLINK_CMD).write $(APPLICATION_FLASH_HEX)
+	@echo "current time: $$(date +'%Y-%m-%d %H:%M:%S')"
 
 .PHONY: arduino.version
 arduino.version: builder.image

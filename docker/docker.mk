@@ -32,6 +32,37 @@ RTBUS_BUILDER_IMAGE ?= localhost/rtbus-zephyr:arm-$(ZEPHYR_SDK_VERSION)
 DOCKER_IMAGE ?= $(RTBUS_BUILDER_IMAGE)
 DOCKER_WORK ?= /workdir
 
+EMPTY :=
+SPACE := $(EMPTY) $(EMPTY)
+ZEPHYR_PROJECT_FILTER_RAW := -loramac-node,
+ZEPHYR_PROJECT_FILTER_RAW += -hal_adi,
+ZEPHYR_PROJECT_FILTER_RAW += -hal_afbr,
+ZEPHYR_PROJECT_FILTER_RAW += -hal_atmel,
+ZEPHYR_PROJECT_FILTER_RAW += -hal_bouffalolab,
+ZEPHYR_PROJECT_FILTER_RAW += -hal_espressif,
+ZEPHYR_PROJECT_FILTER_RAW += -hal_ethos_u,
+ZEPHYR_PROJECT_FILTER_RAW += -hal_gigadevice,
+ZEPHYR_PROJECT_FILTER_RAW += -hal_infineon,
+ZEPHYR_PROJECT_FILTER_RAW += -hal_intel,
+ZEPHYR_PROJECT_FILTER_RAW += -hal_microchip,
+ZEPHYR_PROJECT_FILTER_RAW += -hal_nuvoton,
+ZEPHYR_PROJECT_FILTER_RAW += -hal_nxp,
+ZEPHYR_PROJECT_FILTER_RAW += -hal_openisa,
+ZEPHYR_PROJECT_FILTER_RAW += -hal_quicklogic,
+ZEPHYR_PROJECT_FILTER_RAW += -hal_realtek,
+ZEPHYR_PROJECT_FILTER_RAW += -hal_renesas,
+ZEPHYR_PROJECT_FILTER_RAW += -hal_rpi_pico,
+ZEPHYR_PROJECT_FILTER_RAW += -hal_sifli,
+ZEPHYR_PROJECT_FILTER_RAW += -hal_silabs,
+ZEPHYR_PROJECT_FILTER_RAW += -hal_st,
+ZEPHYR_PROJECT_FILTER_RAW += -hal_tdk,
+ZEPHYR_PROJECT_FILTER_RAW += -hal_telink,
+ZEPHYR_PROJECT_FILTER_RAW += -hal_ti,
+ZEPHYR_PROJECT_FILTER_RAW += -hal_wch,
+ZEPHYR_PROJECT_FILTER_RAW += -hal_wurthelektronik,
+ZEPHYR_PROJECT_FILTER_RAW += -hal_xtensa
+ZEPHYR_PROJECT_FILTER := $(subst $(SPACE),$(EMPTY),$(ZEPHYR_PROJECT_FILTER_RAW))
+
 .PHONY: docker.build
 docker.build:
 	$(call resolve_container_cli)
@@ -50,6 +81,37 @@ docker.image:
 		echo "Build it with: make docker.build" >&2; \
 		exit 1; \
 	}
+
+.PHONY: zephyr.workspace
+zephyr.workspace: docker.image
+	@if [ -f .west/config ] \
+		&& [ -f zephyr/west.yml ] \
+		&& [ -d modules/hal/nordic ] \
+		&& [ -d modules/hal/stm32 ] \
+		&& [ -d modules/hal/ambiq ] \
+		&& [ ! -d modules/hal/nxp ]; then \
+		exit 0; \
+	fi; \
+	echo "Zephyr workspace is missing or not using the reduced module set; initializing."; \
+	$(VM) run --user root --rm \
+		-v $(CURDIR):$(DOCKER_WORK) \
+		-w $(DOCKER_WORK) \
+		-e ZEPHYR_SDK_INSTALL_DIR=/opt/toolchains/zephyr-sdk-$(ZEPHYR_SDK_VERSION) \
+		-e ZEPHYR_TOOLCHAIN_VARIANT=zephyr \
+		$(DOCKER_IMAGE) \
+		sh -ec 'git config --global http.version HTTP/1.1; \
+			rm -rf .west zephyr modules bootloader tools; \
+			git clone --depth=1 --single-branch --branch v4.4.0 https://github.com/zephyrproject-rtos/zephyr zephyr; \
+			west init -l zephyr; \
+			west config manifest.project-filter -- "$(ZEPHYR_PROJECT_FILTER)"; \
+			west -v update --narrow --fetch-opt=--depth=1 || { echo "Shallow west update failed; retrying with full fetch."; west -v update --narrow; }; \
+			cd zephyr; \
+			west zephyr-export; \
+			echo "Zephyr workspace init done"'
+
+.PHONY: zephyr.workspace.clean
+zephyr.workspace.clean:
+	rm -rf .west zephyr modules bootloader tools
 
 .PHONY: docker.images
 docker.images:

@@ -34,7 +34,7 @@ enum wisnodez_api_slot {
     WISNODEZ_API_SLOT_MAGIC = 0,
     WISNODEZ_API_SLOT_VERSION,
     WISNODEZ_API_SLOT_SLOT_COUNT,
-    WISNODEZ_API_SLOT_SCHEDULE_POST,
+    WISNODEZ_API_SLOT_RTBUS_POST,
     WISNODEZ_API_SLOT_DELAY,
     WISNODEZ_API_SLOT_PRINTK,
     WISNODEZ_API_SLOT_VPRINTK,
@@ -55,7 +55,7 @@ struct runtime_event_tlv {
     uint8_t value[RUNTIME_EVENT_VALUE_MAX];
 };
 
-typedef int (*runtime_schedule_post_api_t)(uint8_t task_id, uint32_t ctx_id,
+typedef int (*runtime_rtbus_post_api_t)(uint8_t task_id, uint32_t ctx_id,
                                            const void *payload,
                                            uint32_t payload_len);
 typedef int32_t (*runtime_delay_api_t)(uint32_t delay_ms);
@@ -100,13 +100,13 @@ static inline int runtime_post_wait_result(uint8_t task_id, uint32_t ctx_id,
                                            uint32_t payload_len,
                                            volatile int32_t *result)
 {
-    runtime_schedule_post_api_t post;
+    runtime_rtbus_post_api_t post;
     runtime_result_wait_api_t wait_result;
     int ret;
 
     *result = -WZ_EINPROGRESS;
-    post = WZ_API_FN(WISNODEZ_API_SLOT_SCHEDULE_POST,
-                     runtime_schedule_post_api_t);
+    post = WZ_API_FN(WISNODEZ_API_SLOT_RTBUS_POST,
+                     runtime_rtbus_post_api_t);
     wait_result = WZ_API_FN(WISNODEZ_API_SLOT_RESULT_WAIT,
                             runtime_result_wait_api_t);
 
@@ -124,7 +124,7 @@ static inline int runtime_post_wait_result(uint8_t task_id, uint32_t ctx_id,
 }
 
 #if defined(WISNODEZ_APPLICATION_SHORT_NAMES) && !defined(WZ_API_NO_SHORT_NAMES)
-#define schedule_post       WZ_API_FN(WISNODEZ_API_SLOT_SCHEDULE_POST, runtime_schedule_post_api_t)
+#define rtbus_post       WZ_API_FN(WISNODEZ_API_SLOT_RTBUS_POST, runtime_rtbus_post_api_t)
 #define k_delay             WZ_API_FN(WISNODEZ_API_SLOT_DELAY, runtime_delay_api_t)
 #define printk              WZ_API_FN(WISNODEZ_API_SLOT_PRINTK, runtime_printk_api_t)
 #define vprintk             WZ_API_FN(WISNODEZ_API_SLOT_VPRINTK, runtime_vprintk_api_t)

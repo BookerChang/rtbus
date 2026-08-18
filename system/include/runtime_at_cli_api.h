@@ -14,14 +14,14 @@ extern "C" {
 static inline int runtime_cli_post(const char *line)
 {
     struct application_at_cli_exec_line_req req;
-    runtime_schedule_post_api_t post;
+    runtime_rtbus_post_api_t post;
 
     if (line == 0) {
         return -WZ_EINVAL;
     }
 
-    post = WZ_API_FN(WISNODEZ_API_SLOT_SCHEDULE_POST,
-                     runtime_schedule_post_api_t);
+    post = WZ_API_FN(WISNODEZ_API_SLOT_RTBUS_POST,
+                     runtime_rtbus_post_api_t);
     if (post == 0) {
         return -WZ_ENOSYS;
     }

@@ -1,0 +1,52 @@
+/ {
+	chosen {
+		zephyr,console = &uart0;
+		zephyr,shell-uart = &uart0;
+		zephyr,sram = &sram0;
+		zephyr,flash = &flash0;
+		zephyr,code-partition = &boot_partition;
+	};
+};
+
+&flash0 {
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+		/delete-node/ partition@0;
+		/delete-node/ partition@c000;
+		/delete-node/ partition@18000;
+		/delete-node/ partition@8a000;
+		/delete-node/ partition@fc000;
+
+		internal_boot_partition: partition@0 {
+			label = "internal_bootloader";
+			reg = <0x00000000 0x0000c000>;
+		};
+
+		boot_partition: partition@c000 {
+			label = "mcuboot";
+			reg = <0x0000c000 0x0000c000>;
+		};
+
+		slot0_partition: partition@18000 {
+			label = "image-0";
+			reg = <0x00018000 0x000d4000>;
+		};
+
+		component_slot_partition: partition@ec000 {
+			label = "component_slot";
+			reg = <0x000ec000 0x0000a000>;
+		};
+
+		storage_partition: partition@f6000 {
+			label = "storage";
+			reg = <0x000f6000 0x00006000>;
+		};
+
+		my_at_storage: partition@fc000 {
+			label = "at_storage";
+			reg = <0x000fc000 0x00004000>;
+		};
+	};
+};

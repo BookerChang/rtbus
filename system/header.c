@@ -282,7 +282,6 @@ static int read_text_trimmed(const char *path, char *buf, size_t size)
 
     fp = fopen(path, "r");
     if (fp == NULL) {
-        fprintf(stderr, "open failed: %s: %s\n", path, strerror(errno));
         return -1;
     }
     if (fgets(buf, (int)size, fp) == NULL) {
@@ -296,6 +295,24 @@ static int read_text_trimmed(const char *path, char *buf, size_t size)
         buf[--len] = '\0';
     }
 
+    return len == 0U ? -1 : 0;
+}
+
+static int read_text_or_literal(const char *value, char *buf, size_t size)
+{
+    size_t len;
+
+    if (read_text_trimmed(value, buf, size) == 0) {
+        return 0;
+    }
+
+    len = strlen(value);
+    if (len >= size) {
+        fprintf(stderr, "value too long: %s\n", value);
+        return -1;
+    }
+
+    strcpy(buf, value);
     return len == 0U ? -1 : 0;
 }
 
@@ -564,8 +581,8 @@ int main(int argc, char **argv)
     if (argc != 12 && argc != 13 && argc != 15) {
         fprintf(stderr,
                 "usage: %s <pack> <project> <payload.bin> <payload.out> <map> "
-                "<signed.bin> <signed.hex> <slot.txt> <name> <version_file> "
-                "<build_file> [export_dir] [raw.hex raw.elf export_dir]\n",
+                "<signed.bin> <signed.hex> <slot.txt> <name> <version> "
+                "<build> [export_dir] [raw.hex raw.elf export_dir]\n",
                 argv[0]);
         return 2;
     }
@@ -575,8 +592,8 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    if (read_text_trimmed(argv[10], version_base, sizeof(version_base)) != 0 ||
-        read_text_trimmed(argv[11], version_build, sizeof(version_build)) != 0) {
+    if (read_text_or_literal(argv[10], version_base, sizeof(version_base)) != 0 ||
+        read_text_or_literal(argv[11], version_build, sizeof(version_build)) != 0) {
         return 1;
     }
     snprintf(version, sizeof(version), "%s+%s", version_base, version_build);

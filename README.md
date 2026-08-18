@@ -58,7 +58,44 @@ make arduino.compile \
   ARDUINO_SKETCH=libraries/RTDuo/examples/arduino
 ```
 
+Build the baseline Zephyr runtime:
+
+```bash
+make zephyr.workspace
+make runtime BOARD_PROFILE=rak4631
+```
+
 Generated Arduino cache and build outputs are ignored by git.
+
+## Runtime
+
+The open-source runtime baseline lives under:
+
+```text
+runtime/zephyr/
+```
+
+It currently includes:
+
+- `runtime`: the RTBus Zephyr runtime firmware
+- `bootloader`: the RTBus MCUboot integration and board bootloader profiles
+- `application`: the standalone native C application build path
+- `modules/mod_schedule`: EMOS scheduler support
+- `modules/mod_fw_component`: the application image descriptor/loader primitive
+- `boards`: board profiles used to validate the baseline runtime
+
+Downstream transports and product-specific update logic, such as LoRaWAN,
+FUOTA, patch handling, credentials, and region policy, are intentionally not
+part of the upstream baseline. Those should be added by downstream projects as
+Zephyr modules/config overlays.
+
+Build the runtime or bootloader with an explicit board profile:
+
+```sh
+make runtime BOARD_PROFILE=rak4631
+make bootloader BOARD_PROFILE=rak4631
+make application BOARD_PROFILE=rak4631
+```
 
 ## Package Layout
 

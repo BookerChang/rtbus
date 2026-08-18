@@ -1,0 +1,6 @@
+board:
+  name: rak4200
+  full_name: RAK4200
+  vendor: rakwireless
+  socs:
+    - name: stm32l071xx

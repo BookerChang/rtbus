@@ -1,0 +1,175 @@
+/ {
+    chosen {
+        zephyr,console = &cdc_acm_uart0;
+        zephyr,uart-mcumgr = &cdc_acm_uart1;
+        /delete-property/ zephyr,shell-uart;
+        zephyr,code-partition = &slot0_partition;
+        zephyr,settings-partition = &storage_partition;
+    };
+};
+
+&zephyr_udc0 {
+    status = "okay";
+    
+    cdc_acm_uart0: cdc_acm_uart0 {
+        compatible = "zephyr,cdc-acm-uart";
+    };
+
+    cdc_acm_uart1: cdc_acm_uart1 {
+        compatible = "zephyr,cdc-acm-uart";
+    };
+};
+
+&spi1_default {
+	group1 {
+		psels = <NRF_PSEL(SPIM_SCK, 1, 11)>,
+			<NRF_PSEL(SPIM_MOSI, 1, 12)>;
+		bias-pull-down;
+	};
+
+	group2 {
+		psels = <NRF_PSEL(SPIM_MISO, 1, 13)>;
+		bias-pull-down;
+	};
+};
+
+&spi1_sleep {
+	group1 {
+		psels = <NRF_PSEL(SPIM_SCK, 1, 11)>,
+			<NRF_PSEL(SPIM_MOSI, 1, 12)>,
+			<NRF_PSEL(SPIM_MISO, 1, 13)>;
+		bias-pull-down;
+		low-power-enable;
+	};
+};
+
+&spi1 {
+	compatible = "nordic,nrf-spi";
+	status = "okay";
+	cs-gpios = <&gpio1 10 (GPIO_ACTIVE_LOW)>;
+
+	pinctrl-0 = <&spi1_default>;
+	pinctrl-1 = <&spi1_sleep>;
+	pinctrl-names = "default", "sleep";
+
+	lora: lora@0 {
+		compatible = "semtech,sx1262";
+		reg = <0>;
+		/delete-property/ rx-enable-gpios;
+		reset-gpios = <&gpio1 6 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+		busy-gpios = <&gpio1 14 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+		dio1-gpios = <&gpio1 15 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+		dio2-tx-enable;
+		dio3-tcxo-voltage = <SX126X_DIO3_TCXO_1V7>;
+		tcxo-power-startup-delay-ms = <10>;
+		spi-max-frequency = <250000>;
+	};
+};
+
+
+&lora {
+	zephyr,deferred-init;
+};
+
+&gpio1 {
+	io2_default: io2-default {
+		gpio-hog;
+		gpios = <2 GPIO_ACTIVE_LOW>;
+		output-high;
+		line-name = "IO2";
+	};
+
+	/* P1.05: board RF IO, not RX/TX switch; hold high at boot */
+	rf_io_default: rf-io-default {
+		gpio-hog;
+		gpios = <5 GPIO_ACTIVE_HIGH>;
+		output-high;
+		line-name = "RF_IO";
+	};
+};
+
+&reg1 {
+	regulator-initial-mode = <NRF5X_REG_MODE_DCDC>;
+};
+
+&flash0 {
+	partitions {
+		ranges;
+		#address-cells = <1>;
+		#size-cells = <1>;
+		/delete-node/ partition@c000;
+		/delete-node/ partition@82000;
+
+		boot_partition: partition@0 {
+			compatible = "zephyr,mapped-partition";
+			label = "mcuboot";
+			reg = <0x00000000 0x00010000>; /* 64 KB */
+		};
+
+		slot0_partition: partition@10000 {
+			compatible = "zephyr,mapped-partition";
+			label = "image-0";
+			reg = <0x00010000 0x0006E000>; /* 448 KB */
+		};
+
+		slot1_partition: partition@7E000 {
+			compatible = "zephyr,mapped-partition";
+			label = "image-1";
+			reg = <0x0007E000 0x0006E000>; /* 448 KB */
+		};
+
+		component_slot_partition: partition@EC000 {
+			compatible = "zephyr,mapped-partition";
+			label = "component_slot";
+			reg = <0x000EC000 0x0000A000>; /* 40 KB */
+		};
+
+		scratch_partition: partition@F6000 {
+			compatible = "zephyr,mapped-partition";
+			label = "scratch";
+			reg = <0x000F6000 0x00002000>; /* 8 KB */
+		};
+
+		storage_partition: partition@F8000 {
+			compatible = "zephyr,mapped-partition";
+			label = "storage";
+			reg = <0x000F8000 0x00004000>; /* 16 KB */
+		};
+
+		my_at_storage: partition@FC000 {
+			compatible = "fixed-partition";
+			label = "at_storage";
+			reg = <0x000FC000 0x00004000>; /* 16 KB */
+		};
+	};
+};
+
+&sram0 {
+    /*
+     * Reserve the top of SRAM for runtime-owned memory windows.
+     *
+     * shared_upgrade_ram is a 40 KiB pool used by firmware patch staging.
+     * The optional native module demo borrows the front of the same pool for
+     * module globals until a patch upgrade takes ownership.
+     */
+    reg = <0x20000000 0x35000>;
+
+    reserved-memory {
+        #address-cells = <1>;
+        #size-cells = <1>;
+        ranges;
+
+        shared_upgrade_ram: shared_upgrade_ram@20035000 {
+            compatible = "zephyr,memory-region";
+            reg = <0x20035000 0xA000>;
+            zephyr,memory-region = "SHARED_UPGRADE_RAM";
+        };
+
+        /* Place the shared region at the fixed address 0x2003FF00. */
+        shared_ram: shared_mem@2003FF00 {
+            compatible = "zephyr,memory-region";
+            reg = <0x2003FF00 0x100>;
+            zephyr,memory-region = "SHARED_RAM";
+        };
+    };
+};

@@ -1,0 +1,43 @@
+/ {
+	chosen {
+		zephyr,console = &usart2;
+		zephyr,shell-uart = &usart2;
+		zephyr,sram = &sram0;
+		zephyr,flash = &flash0;
+		zephyr,code-partition = &boot_partition;
+	};
+};
+
+&flash0 {
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		boot_partition: partition@0 {
+			label = "mcuboot";
+			reg = <0x00000000 DT_SIZE_K(32)>;
+			read-only;
+		};
+
+		slot0_partition: partition@8000 {
+			label = "image-0";
+			reg = <0x00008000 DT_SIZE_K(64)>;
+		};
+
+		component_slot_partition: partition@18000 {
+			label = "component_slot";
+			reg = <0x00018000 DT_SIZE_K(16)>;
+		};
+
+		storage_partition: partition@1c000 {
+			label = "storage";
+			reg = <0x0001c000 DT_SIZE_K(12)>;
+		};
+
+		my_at_storage: partition@1f000 {
+			label = "at_storage";
+			reg = <0x0001f000 DT_SIZE_K(4)>;
+		};
+	};
+};
