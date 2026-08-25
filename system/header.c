@@ -18,13 +18,13 @@
 #define COMPONENT_MAGIC 0x5746434dU
 #define HEADER_VERSION 2U
 #define HEADER_SIZE 128U
-#define FW_COMPONENT_FLAG_NATIVE 0x00000001U
-#define FW_COMPONENT_ABI_VERSION_SHIFT 24U
-#define FW_COMPONENT_ABI_VERSION_MASK 0xff000000U
-#define FW_COMPONENT_FLAGS_MAKE_NATIVE_ABI(_version) \
-    (FW_COMPONENT_FLAG_NATIVE | \
-     (((uint32_t)(_version) << FW_COMPONENT_ABI_VERSION_SHIFT) & \
-      FW_COMPONENT_ABI_VERSION_MASK))
+#define RTBUS_IMAGE_FLAG_NATIVE 0x00000001U
+#define RTBUS_IMAGE_ABI_VERSION_SHIFT 24U
+#define RTBUS_IMAGE_ABI_VERSION_MASK 0xff000000U
+#define RTBUS_IMAGE_FLAGS_MAKE_NATIVE_ABI(_version) \
+    (RTBUS_IMAGE_FLAG_NATIVE | \
+     (((uint32_t)(_version) << RTBUS_IMAGE_ABI_VERSION_SHIFT) & \
+      RTBUS_IMAGE_ABI_VERSION_MASK))
 #define IHEX_RECORD_DATA 0x00U
 #define IHEX_RECORD_EOF 0x01U
 #define IHEX_RECORD_EXT_LINEAR_ADDR 0x04U
@@ -556,7 +556,7 @@ static void build_header(uint8_t *header, const struct application_symbols *symb
     put_fixed_string(header + 16U, 16U, version);
     put_fixed_string(header + 32U, 64U, name);
     put_le32(header + 96U, ram_size);
-    put_le32(header + 100U, FW_COMPONENT_FLAGS_MAKE_NATIVE_ABI(WZ_API_VERSION));
+    put_le32(header + 100U, RTBUS_IMAGE_FLAGS_MAKE_NATIVE_ABI(WZ_API_VERSION));
 
     put_le32(reserved + 0U, symbols->entry - symbols->flash_start);
     put_le32(reserved + 4U, symbols->data_load - symbols->flash_start);

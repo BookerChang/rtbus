@@ -5,8 +5,7 @@ BOARD_RUNTIME_OVERLAY ?= $(RUNTIME_BOARD_DIR)/runtime.overlay
 RUNTIME_BUILD_DIR ?= build.zephyr/runtime/$(BOARD_PROFILE)
 RUNTIME_SHARE_DIR ?= zephyr-share/runtime/$(BOARD_PROFILE)
 
-RTBUS_BASE_ZEPHYR_MODULES := $(DOCKER_WORK)/runtime/zephyr/modules/rtbus;$(DOCKER_WORK)/runtime/zephyr/modules/mod_fw_component
-RUNTIME_ZEPHYR_MODULES := $(RTBUS_BASE_ZEPHYR_MODULES)$(if $(strip $(RTBUS_ZEPHYR_MODULES)),;$(RTBUS_ZEPHYR_MODULES),)
+RUNTIME_ZEPHYR_MODULES := $(strip $(RTBUS_ZEPHYR_MODULES))
 
 RUNTIME_EXTRA_CONF_FILE :=
 ifneq ($(strip $(BOARD_RUNTIME_CONF)),)
@@ -34,11 +33,14 @@ endif
 ifneq ($(strip $(RTBUS_BOARD_ROOTS)),)
 RUNTIME_BOARD_ARGS += -DBOARD_ROOT="$(RTBUS_BOARD_ROOTS)"
 endif
+ifneq ($(strip $(RUNTIME_ZEPHYR_MODULES)),)
+RUNTIME_BOARD_ARGS += -DZEPHYR_EXTRA_MODULES="$(RUNTIME_ZEPHYR_MODULES)"
+endif
 
 .PHONY: runtime
 runtime: builder.image zephyr.workspace
 	@test -n "$(ZEPHYR_BOARD)" || { echo "Unsupported BOARD_PROFILE=$(BOARD_PROFILE)" >&2; exit 1; }
-	$(DOCKER_RUN) sh -ec 'west build -b "$(ZEPHYR_BOARD)" -d "$(DOCKER_WORK)/$(RUNTIME_BUILD_DIR)" -p always -s "$(DOCKER_WORK)/$(RUNTIME_APP_DIR)" -- -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DZEPHYR_EXTRA_MODULES="$(RUNTIME_ZEPHYR_MODULES)" $(RUNTIME_BOARD_ARGS); rm -rf "$(DOCKER_WORK)/$(RUNTIME_SHARE_DIR)"; mkdir -p "$(DOCKER_WORK)/$(RUNTIME_SHARE_DIR)"; for f in zephyr.hex zephyr.bin zephyr.signed.hex zephyr.signed.bin zephyr.elf zephyr.map zephyr.dts .config; do if [ -f "$(DOCKER_WORK)/$(RUNTIME_BUILD_DIR)/zephyr/$$f" ]; then cp "$(DOCKER_WORK)/$(RUNTIME_BUILD_DIR)/zephyr/$$f" "$(DOCKER_WORK)/$(RUNTIME_SHARE_DIR)/$$f"; fi; done; if [ -f "$(DOCKER_WORK)/$(RUNTIME_BUILD_DIR)/compile_commands.json" ]; then cp "$(DOCKER_WORK)/$(RUNTIME_BUILD_DIR)/compile_commands.json" "$(DOCKER_WORK)/$(RUNTIME_SHARE_DIR)/compile_commands.json"; fi; echo "Runtime artifacts exported: $(DOCKER_WORK)/$(RUNTIME_SHARE_DIR)"'
+	$(DOCKER_RUN) sh -ec 'west build -b "$(ZEPHYR_BOARD)" -d "$(DOCKER_WORK)/$(RUNTIME_BUILD_DIR)" -p always -s "$(DOCKER_WORK)/$(RUNTIME_APP_DIR)" -- -DCMAKE_EXPORT_COMPILE_COMMANDS=ON $(RUNTIME_BOARD_ARGS); rm -rf "$(DOCKER_WORK)/$(RUNTIME_SHARE_DIR)"; mkdir -p "$(DOCKER_WORK)/$(RUNTIME_SHARE_DIR)"; for f in zephyr.hex zephyr.bin zephyr.signed.hex zephyr.signed.bin zephyr.elf zephyr.map zephyr.dts .config; do if [ -f "$(DOCKER_WORK)/$(RUNTIME_BUILD_DIR)/zephyr/$$f" ]; then cp "$(DOCKER_WORK)/$(RUNTIME_BUILD_DIR)/zephyr/$$f" "$(DOCKER_WORK)/$(RUNTIME_SHARE_DIR)/$$f"; fi; done; if [ -f "$(DOCKER_WORK)/$(RUNTIME_BUILD_DIR)/compile_commands.json" ]; then cp "$(DOCKER_WORK)/$(RUNTIME_BUILD_DIR)/compile_commands.json" "$(DOCKER_WORK)/$(RUNTIME_SHARE_DIR)/compile_commands.json"; fi; echo "Runtime artifacts exported: $(DOCKER_WORK)/$(RUNTIME_SHARE_DIR)"'
 
 .PHONY: runtime.clean
 runtime.clean:

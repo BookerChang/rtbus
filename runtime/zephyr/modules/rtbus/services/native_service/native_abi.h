@@ -12,8 +12,13 @@
  * symbols. Keep this private layer so native_service code uses RTBus naming
  * without changing the ABI contract in this step.
  */
-#define RTBUS_NATIVE_API_TABLE_BASE          WZ_API_TABLE_BASE
-#define RTBUS_NATIVE_API_SLOT_PTR(_slot)     WZ_API_SLOT_PTR(_slot)
+#if !defined(CONFIG_WISNODEZ_API_TABLE_BASE)
+#error "CONFIG_WISNODEZ_API_TABLE_BASE is required by native_service"
+#endif
+
+#define RTBUS_NATIVE_API_TABLE_BASE CONFIG_WISNODEZ_API_TABLE_BASE
+#define RTBUS_NATIVE_API_SLOT_PTR(_slot) \
+    (((volatile uintptr_t *)(uintptr_t)RTBUS_NATIVE_API_TABLE_BASE)[_slot])
 #define RTBUS_NATIVE_API_MAGIC               WZ_API_MAGIC
 #define RTBUS_NATIVE_API_VERSION             WZ_API_VERSION
 

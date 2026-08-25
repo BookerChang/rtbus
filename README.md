@@ -81,7 +81,7 @@ It currently includes:
 - `bootloader`: the RTBus MCUboot integration and board bootloader profiles
 - `application`: the standalone native C application build path
 - `modules/mod_schedule`: EMOS scheduler support
-- `modules/mod_fw_component`: the application image descriptor/loader primitive
+- `modules/rtbus`: RTBus runtime subsystem sources
 - `boards`: board profiles used to validate the baseline runtime
 
 Downstream transports and product-specific update logic, such as LoRaWAN,

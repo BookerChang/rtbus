@@ -27,6 +27,8 @@ endif()
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(rtbus_runtime)
 
+add_subdirectory(../modules/rtbus rtbus)
+
 zephyr_linker_sources(SECTIONS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/sections.ld
 )

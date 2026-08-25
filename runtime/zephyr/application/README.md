@@ -62,10 +62,9 @@ relative to the `runtime/zephyr/application` working directory. Keep flash/RAM
 layout changes in the core linker script unless the standalone application path
 needs a board-specific override.
 
-The root `make application` target initializes the ignored
-`system/IMGTOOL_VERSION.build` file to `0` when it is missing, so native
-application images can be packed before a runtime build has created release
-metadata.
+The root `make application` target uses `APPLICATION_VERSION=0.1.0` and
+`APPLICATION_BUILD=0` by default. Override those variables when release metadata
+needs to be embedded in the standalone native application image.
 
 ## Outputs
 

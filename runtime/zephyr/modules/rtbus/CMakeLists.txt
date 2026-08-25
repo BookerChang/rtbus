@@ -1,24 +1,22 @@
 if(CONFIG_RTBUS_LIB)
-  zephyr_library()
-
-  zephyr_library_sources(
+  target_sources(app PRIVATE
     src/rtbus.c
   )
   if(CONFIG_RTBUS_ITERABLE_ENTRY)
-    zephyr_library_sources(src/rtbus_iterable.c)
+    target_sources(app PRIVATE src/rtbus_iterable.c)
   else()
-    zephyr_library_sources(src/rtbus_entries.c)
+    target_sources(app PRIVATE src/rtbus_entries.c)
   endif()
 
-  zephyr_library_sources_ifdef(CONFIG_RTBUS_NATIVE_SERVICE
-    subsys/rtbus_runtime.c
-    subsys/rtbus_bootstrap.c
-    subsys/rtbus_event.c
-    subsys/native_service/native_service.c
+  target_sources_ifdef(CONFIG_RTBUS_NATIVE_SERVICE app PRIVATE
+    services/rtbus_runtime.c
+    services/rtbus_bootstrap.c
+    services/rtbus_event.c
+    services/native_service/native_service.c
+    services/rtbus_image.c
   )
 
-  zephyr_include_directories(include)
-  zephyr_library_include_directories(
+  target_include_directories(app PRIVATE
     include
     ${CMAKE_CURRENT_SOURCE_DIR}/../../../../system/include
   )

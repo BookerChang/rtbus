@@ -45,8 +45,8 @@ static void rtbus_runtime_thread_entry(void *p1, void *p2, void *p3)
         }
 
         timeout_ms = rtbus_next_timeout_ms();
-        if (timeout_ms < 0 || timeout_ms > 100) {
-            timeout_ms = 100;
+        if (timeout_ms < 0 || timeout_ms > CONFIG_RTBUS_RUNTIME_TIMEOUT_MAX_MS) {
+            timeout_ms = CONFIG_RTBUS_RUNTIME_TIMEOUT_MAX_MS;
         }
 
         (void)runtime_event_wait((uint32_t)timeout_ms);

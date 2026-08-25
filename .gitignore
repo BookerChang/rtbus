@@ -19,3 +19,4 @@ zephyr-share/
 *.o
 *.a
 *.d
+TODO.md

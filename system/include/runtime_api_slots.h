@@ -1,0 +1,33 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#ifndef RUNTIME_API_SLOTS_H_
+#define RUNTIME_API_SLOTS_H_
+
+#define WZ_API_MAGIC      0x575A4150U
+#define WZ_API_VERSION    6U
+#define WZ_ENOSYS         38
+#define WZ_EINVAL         22
+#define WZ_EMSGSIZE       90
+#define WZ_EINPROGRESS    115
+#define WZ_WAIT_FOREVER   0xFFFFFFFFU
+
+#define WISNODEZ_API_SLOT_MAGIC          0
+#define WISNODEZ_API_SLOT_VERSION        1
+#define WISNODEZ_API_SLOT_SLOT_COUNT     2
+#define WISNODEZ_API_SLOT_RTBUS_POST     3
+#define WISNODEZ_API_SLOT_DELAY          4
+#define WISNODEZ_API_SLOT_PRINTK         5
+#define WISNODEZ_API_SLOT_VPRINTK        6
+#define WISNODEZ_API_SLOT_RESULT_WAIT    7
+#define WISNODEZ_API_SLOT_SERIAL_WRITE   8
+#define WISNODEZ_API_SLOT_GPIO_CONFIGURE 9
+#define WISNODEZ_API_SLOT_GPIO_WRITE     10
+#define WISNODEZ_API_SLOT_GPIO_READ      11
+#define WISNODEZ_API_SLOT_ON_EVENT       12
+#define WISNODEZ_API_SLOT_COUNT          13
+
+#define WISNODEZ_API_SLOT_OFFSET(_slot) ((_slot) * 4)
+
+#endif /* RUNTIME_API_SLOTS_H_ */

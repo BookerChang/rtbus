@@ -18,7 +18,7 @@
 #include <zephyr/sys/printk.h>
 #include <zephyr/sys/util.h>
 
-#include <fw_component.h>
+#include <rtbus_image.h>
 #include <rtbus.h>
 #include <rtbus/runtime_event.h>
 
@@ -32,7 +32,7 @@
 #define NATIVE_RAM_NODE            DT_NODELABEL(shared_upgrade_ram)
 #define NATIVE_RAM_BASE            DT_REG_ADDR(NATIVE_RAM_NODE)
 #define NATIVE_RAM_POOL_SIZE       DT_REG_SIZE(NATIVE_RAM_NODE)
-#define NATIVE_RAM_SIZE            CONFIG_WISMOD_FW_COMPONENT_RAM_MAX
+#define NATIVE_RAM_SIZE            CONFIG_RTBUS_IMAGE_RAM_MAX
 #define NATIVE_API_NODE            DT_NODELABEL(shared_ram)
 #define NATIVE_API_BASE            DT_REG_ADDR(NATIVE_API_NODE)
 #define NATIVE_API_SIZE            DT_REG_SIZE(NATIVE_API_NODE)
@@ -46,8 +46,8 @@
 #define NATIVE_WAKE_PROCESS   (1U << 1)
 #define NATIVE_WAKE_ALL       (NATIVE_WAKE_IRQ | NATIVE_WAKE_PROCESS)
 
-BUILD_ASSERT(CONFIG_WISMOD_FW_COMPONENT_RAM_MAX <= NATIVE_RAM_POOL_SIZE,
-             "CONFIG_WISMOD_FW_COMPONENT_RAM_MAX exceeds shared_upgrade_ram");
+BUILD_ASSERT(CONFIG_RTBUS_IMAGE_RAM_MAX <= NATIVE_RAM_POOL_SIZE,
+             "CONFIG_RTBUS_IMAGE_RAM_MAX exceeds shared_upgrade_ram");
 BUILD_ASSERT(RTBUS_NATIVE_API_TABLE_BASE == NATIVE_API_BASE,
              "RTBUS_NATIVE_API_TABLE_BASE must match shared_ram");
 BUILD_ASSERT(RTBUS_NATIVE_API_SLOT_COUNT * sizeof(uintptr_t) <= NATIVE_API_SIZE,
@@ -295,16 +295,16 @@ void native_service_resume_after_upgrade(void)
 }
 
 
-static int native_validate_metadata(const struct fw_component_status *status,
-                                                const struct fw_component_native_metadata *metadata)
+static int native_validate_metadata(const struct rtbus_image_status *status,
+                                                const struct rtbus_image_native_metadata *metadata)
 {
     uint32_t abi_version;
 
-    if ((status->flags & FW_COMPONENT_FLAG_NATIVE) == 0U) {
+    if ((status->flags & RTBUS_IMAGE_FLAG_NATIVE) == 0U) {
         return -ENOTSUP;
     }
 
-    abi_version = FW_COMPONENT_FLAGS_ABI_VERSION(status->flags);
+    abi_version = RTBUS_IMAGE_FLAGS_ABI_VERSION(status->flags);
     if (abi_version != NATIVE_REQUIRED_ABI_VERSION) {
         printk("application: ERROR incompatible ABI version %u, runtime requires %u\n",
                (unsigned int)abi_version,
@@ -327,20 +327,20 @@ static int native_validate_metadata(const struct fw_component_status *status,
 
 static int native_load(void)
 {
-    struct fw_component_status status;
-    struct fw_component_native_metadata metadata;
+    struct rtbus_image_status status;
+    struct rtbus_image_native_metadata metadata;
     uintptr_t entry_addr;
     size_t read_size = 0U;
     uint8_t *native_ram = (uint8_t *)(uintptr_t)NATIVE_RAM_BASE;
     int rc;
 
-    rc = fw_component_get_status(&status);
+    rc = rtbus_image_get_status(&status);
     if (rc != 0) {
         atomic_set(&native_last_error, rc);
         return rc;
     }
 
-    rc = fw_component_get_native_metadata(&metadata);
+    rc = rtbus_image_get_native_metadata(&metadata);
     if (rc != 0) {
         atomic_set(&native_last_error, rc);
         return rc;
@@ -352,7 +352,7 @@ static int native_load(void)
         return rc;
     }
 
-    rc = fw_component_read_payload(metadata.data_load_offset,
+    rc = rtbus_image_read_payload(metadata.data_load_offset,
                                    native_ram + metadata.data_ram_offset,
                                    metadata.data_size,
                                    &read_size);
@@ -367,7 +367,7 @@ static int native_load(void)
 
     memset(native_ram + metadata.bss_ram_offset, 0, metadata.bss_size);
 
-    entry_addr = (uintptr_t)NATIVE_FLASH_BASE + FW_COMPONENT_IMAGE_HEADER_SIZE +
+    entry_addr = (uintptr_t)NATIVE_FLASH_BASE + RTBUS_IMAGE_HEADER_SIZE +
                  metadata.entry_offset;
     native_entry = (native_entry_t)(entry_addr | 1U);
     atomic_set(&native_last_error, 0);

@@ -29,14 +29,33 @@ config RTBUS_DELAYED_EVENT_PAYLOAD_MAX
 config RTBUS_NATIVE_SERVICE
     bool "Enable RTBus native service subsystem"
     depends on RTBUS_LIB
-    depends on WISMOD_FW_COMPONENT_LIB
+    depends on FLASH_MAP
     depends on MULTITHREADING
     depends on EVENTS
     depends on SERIAL
     depends on GPIO
+    select CRC
     default n
     help
-      Enable the RTBus native service. This subsystem loads the
-      application component image, installs the existing runtime ABI table, and
-      runs the native application thread.
+      Enable the RTBus native service. This subsystem loads the RTBus image,
+      installs the existing runtime ABI table, and runs the native application
+      thread.
+
+config RTBUS_RUNTIME_TIMEOUT_MAX_MS
+    int "Maximum RTBus runtime wait timeout in milliseconds"
+    default 100
+    range 1 60000
+    depends on RTBUS_NATIVE_SERVICE
+    help
+      Maximum timeout passed to the RTBus runtime event wait. This is also used
+      when RTBus has no pending delayed event.
+
+config RTBUS_IMAGE_RAM_MAX
+    int "Maximum runtime RAM declared by an RTBus image"
+    default 8192
+    range 0 8192
+    depends on RTBUS_NATIVE_SERVICE
+    help
+      Maximum private runtime RAM, in bytes, that an RTBus image may declare in
+      its header.
 endmenu

@@ -14,26 +14,19 @@ extern "C" {
 static inline int runtime_cli_post(const char *line)
 {
     struct application_at_cli_exec_line_req req;
-    runtime_rtbus_post_api_t post;
 
     if (line == 0) {
         return -WZ_EINVAL;
-    }
-
-    post = WZ_API_FN(WISNODEZ_API_SLOT_RTBUS_POST,
-                     runtime_rtbus_post_api_t);
-    if (post == 0) {
-        return -WZ_ENOSYS;
     }
 
     req.address = (uint32_t)(uintptr_t)line;
     req.done_task_id = 0U;
     req.done_event_id = 0U;
 
-    return post(APPLICATION_TASK_AT_CLI,
-                APPLICATION_AT_CLI_EXEC_LINE,
-                &req,
-                sizeof(req));
+    return rtbus_post(APPLICATION_TASK_AT_CLI,
+                      APPLICATION_AT_CLI_EXEC_LINE,
+                      &req,
+                      sizeof(req));
 }
 
 #ifdef __cplusplus

@@ -22,18 +22,7 @@ typedef uintptr_t runtime_ble_conn_t;
 
 static inline int runtime_ble_adv_start(void)
 {
-    runtime_rtbus_post_api_t post;
-
-    post = WZ_API_FN(WISNODEZ_API_SLOT_RTBUS_POST,
-                     runtime_rtbus_post_api_t);
-    if (post == 0) {
-        return -WZ_ENOSYS;
-    }
-
-    return post(APPLICATION_TASK_BLE_SERVICE,
-                APPLICATION_BLE_ADV_START,
-                0,
-                0U);
+    return rtbus_post(APPLICATION_TASK_BLE_SERVICE, APPLICATION_BLE_ADV_START, 0, 0U);
 }
 
 static inline int runtime_ble_set_security(runtime_ble_conn_t conn,

@@ -13,19 +13,11 @@ extern "C" void __attribute__((weak)) runtime_arduino_serial_end(void) {
 
 extern "C" size_t __attribute__((weak)) runtime_arduino_serial_write(const uint8_t *data,
                                                                        size_t size) {
-    runtime_serial_write_api_t serial_write;
-
     if (data == nullptr || size == 0) {
         return 0;
     }
 
-    serial_write = WZ_API_FN(WISNODEZ_API_SLOT_SERIAL_WRITE,
-                             runtime_serial_write_api_t);
-    if (serial_write == nullptr) {
-        return 0;
-    }
-
-    return serial_write(data, size);
+    return runtime_serial_write(data, size);
 }
 
 HardwareSerial Serial;
@@ -97,21 +89,14 @@ size_t HardwareSerial::write(const uint8_t *buffer, size_t size) {
 }
 
 size_t HardwareSerial::printf(const char *fmt, ...) {
-    runtime_vprintk_api_t runtime_vprintk;
     va_list args;
 
     if (fmt == nullptr) {
         return 0;
     }
 
-    runtime_vprintk = WZ_API_FN(WISNODEZ_API_SLOT_VPRINTK,
-                                runtime_vprintk_api_t);
-    if (runtime_vprintk == nullptr) {
-        return 0;
-    }
-
     va_start(args, fmt);
-    runtime_vprintk(fmt, args);
+    vprintk(fmt, args);
     va_end(args);
 
     return 0;

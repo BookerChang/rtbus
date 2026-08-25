@@ -4,7 +4,7 @@
  * Link layout for the RAK11720 upgradable application image.
  */
 
-ENTRY(main)
+ENTRY(__rtduo_start)
 
 MEMORY
 {
@@ -40,7 +40,7 @@ SECTIONS
         __module_bss_end = .;
     } > MODULE_RAM
 
-    __module_entry = main;
+    __module_entry = __rtduo_start;
     __module_slot_start = ORIGIN(MODULE_FLASH) - 0x80;
     __module_flash_start = ORIGIN(MODULE_FLASH);
     __module_flash_end = ORIGIN(MODULE_FLASH) + LENGTH(MODULE_FLASH);

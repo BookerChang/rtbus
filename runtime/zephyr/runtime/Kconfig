@@ -36,4 +36,6 @@ config RUNTIME_POOL_SIZE
 	  allocation. Small RAM targets can override this in their board
 	  runtime.conf.
 
+rsource "../modules/rtbus/Kconfig"
+
 source "Kconfig.zephyr"
