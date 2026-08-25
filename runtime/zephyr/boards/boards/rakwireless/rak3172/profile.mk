@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: MPL-2.0
 
 PROFILE_NAME := rak3172
 ZEPHYR_BOARD ?= rak3172

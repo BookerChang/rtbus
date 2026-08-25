@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: MPL-2.0
 #
 # Standalone native application build path kept with the Zephyr apps.
 # This preserves the legacy native compile/link/pack flow while

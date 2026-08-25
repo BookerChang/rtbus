@@ -1,5 +1,5 @@
 /*
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #ifndef RTBUS_RUNTIME_EVENT_H_

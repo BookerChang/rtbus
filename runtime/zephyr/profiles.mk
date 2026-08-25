@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: MPL-2.0
 
 BOARD_VENDOR ?= rakwireless
 BOARD_PROFILE_ROOT := runtime/zephyr/boards/boards/$(BOARD_VENDOR)

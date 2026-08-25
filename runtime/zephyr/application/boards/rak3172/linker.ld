@@ -1,5 +1,5 @@
 /*
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: MPL-2.0
  *
  * Link layout for the RAK3172 upgradable application image.
  */

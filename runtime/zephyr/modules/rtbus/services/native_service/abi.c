@@ -1,5 +1,5 @@
 /*
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 static void native_abi_table_install(void)

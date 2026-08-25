@@ -1,7 +1,0 @@
-# SPDX-License-Identifier: Apache-2.0
-
-PROFILE_NAME := rak11720
-ZEPHYR_BOARD ?= rak11720
-ZEPHYR_BOARD_SOURCE ?= upstream
-ZEPHYR_SOC ?= ama3b1kk
-JLINK_TARGET ?= AMA3B1KK-KBR

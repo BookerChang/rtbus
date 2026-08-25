@@ -1,5 +1,5 @@
 /*
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #define RTBUS_NO_INIT_MACRO

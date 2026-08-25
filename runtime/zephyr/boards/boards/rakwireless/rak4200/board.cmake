@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: MPL-2.0
 
 board_runner_args(stm32cubeprogrammer "--port=swd" "--reset-mode=hw")
 board_runner_args(jlink "--device=STM32L071KB" "--speed=4000")

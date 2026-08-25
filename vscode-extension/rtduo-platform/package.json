@@ -3,6 +3,7 @@
   "displayName": "RTDuo Platform",
   "description": "Build and use the RTDuo Arduino builder environment through Docker or Podman.",
   "version": "0.0.1",
+  "license": "MPL-2.0",
   "publisher": "rtbus",
   "engines": {
     "vscode": "^1.85.0"
