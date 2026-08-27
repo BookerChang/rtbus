@@ -2,32 +2,35 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-static void native_abi_table_install(void)
+static void native_api_table_install(void)
 {
-    RTBUS_NATIVE_API_SLOT_PTR(RTBUS_NATIVE_API_SLOT_MAGIC) =
-        RTBUS_NATIVE_API_MAGIC;
-    RTBUS_NATIVE_API_SLOT_PTR(RTBUS_NATIVE_API_SLOT_VERSION) =
-        RTBUS_NATIVE_API_VERSION;
-    RTBUS_NATIVE_API_SLOT_PTR(RTBUS_NATIVE_API_SLOT_SLOT_COUNT) =
-        RTBUS_NATIVE_API_SLOT_COUNT;
-    RTBUS_NATIVE_API_SLOT_PTR(RTBUS_NATIVE_API_SLOT_RTBUS_POST) =
+    volatile uintptr_t *api_table =
+        (volatile uintptr_t *)(uintptr_t)CONFIG_RTBUS_NATIVE_API_TABLE_BASE;
+
+    api_table[RTBUS_API_SLOT_MAGIC] =
+        RTBUS_API_MAGIC;
+    api_table[RTBUS_API_SLOT_VERSION] =
+        RTBUS_API_VERSION;
+    api_table[RTBUS_API_SLOT_SLOT_COUNT] =
+        RTBUS_API_SLOT_COUNT;
+    api_table[RTBUS_API_SLOT_RTBUS_POST] =
         (uintptr_t)native_api_rtbus_post;
-    RTBUS_NATIVE_API_SLOT_PTR(RTBUS_NATIVE_API_SLOT_DELAY) =
+    api_table[RTBUS_API_SLOT_DELAY] =
         (uintptr_t)native_api_k_delay;
-    RTBUS_NATIVE_API_SLOT_PTR(RTBUS_NATIVE_API_SLOT_PRINTK) =
-        (uintptr_t)native_api_printk;
-    RTBUS_NATIVE_API_SLOT_PTR(RTBUS_NATIVE_API_SLOT_VPRINTK) =
-        (uintptr_t)native_api_vprintk;
-    RTBUS_NATIVE_API_SLOT_PTR(RTBUS_NATIVE_API_SLOT_RESULT_WAIT) =
+    api_table[RTBUS_API_SLOT_RTT_VPRINTF] =
+        (uintptr_t)native_api_rtt_vprintf;
+    api_table[RTBUS_API_SLOT_RESULT_WAIT] =
         (uintptr_t)native_api_result_wait;
-    RTBUS_NATIVE_API_SLOT_PTR(RTBUS_NATIVE_API_SLOT_SERIAL_WRITE) =
+    api_table[RTBUS_API_SLOT_SERIAL_WRITE] =
         (uintptr_t)native_api_serial_write;
-    RTBUS_NATIVE_API_SLOT_PTR(RTBUS_NATIVE_API_SLOT_GPIO_CONFIGURE) =
+    api_table[RTBUS_API_SLOT_GPIO_CONFIGURE] =
         (uintptr_t)native_api_gpio_configure;
-    RTBUS_NATIVE_API_SLOT_PTR(RTBUS_NATIVE_API_SLOT_GPIO_WRITE) =
+    api_table[RTBUS_API_SLOT_GPIO_WRITE] =
         (uintptr_t)native_api_gpio_write;
-    RTBUS_NATIVE_API_SLOT_PTR(RTBUS_NATIVE_API_SLOT_GPIO_READ) =
+    api_table[RTBUS_API_SLOT_GPIO_READ] =
         (uintptr_t)native_api_gpio_read;
-    RTBUS_NATIVE_API_SLOT_PTR(RTBUS_NATIVE_API_SLOT_ON_EVENT) =
+    api_table[RTBUS_API_SLOT_ON_EVENT] =
         (uintptr_t)native_api_on_event;
+    api_table[RTBUS_API_SLOT_SERIAL_VPRINTF] =
+        (uintptr_t)native_api_serial_vprintf;
 }

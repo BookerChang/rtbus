@@ -44,7 +44,7 @@ FLOAT_ABI ?= -mabi=aapcs
 MCU := $(CPU) -mthumb $(FPU) $(FLOAT_ABI)
 
 OPT ?= -Os
-C_DEFS ?= -DWISNODEZ_APPLICATION_SHORT_NAMES
+C_DEFS ?=
 C_INCLUDES ?= -I$(ABI_INCLUDE)
 
 CFLAGS += $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -Wextra \

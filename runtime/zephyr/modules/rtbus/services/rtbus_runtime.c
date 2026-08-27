@@ -40,7 +40,7 @@ static void rtbus_runtime_thread_entry(void *p1, void *p2, void *p3)
         int32_t timeout_ms;
 
         ret = rtbus_process();
-        if (ret != 0) {
+        if (ret < 0) {
             LOG_ERR("RTBus process failed: %d", ret);
         }
 

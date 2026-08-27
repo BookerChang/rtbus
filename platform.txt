@@ -23,7 +23,7 @@ compiler.cpp.flags=-c {compiler.common.flags} -fno-exceptions -fno-rtti -fno-thr
 compiler.S.flags=-c {compiler.common.flags} -x assembler-with-cpp
 compiler.ar.flags=rcs
 
-build.extra_flags=-DWISNODEZ_APPLICATION_SHORT_NAMES
+build.extra_flags=
 build.abi.includes=-I{runtime.platform.path}/system/include
 build.application.pack=true
 build.application.name=application

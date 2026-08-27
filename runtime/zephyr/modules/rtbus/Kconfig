@@ -41,6 +41,16 @@ config RTBUS_NATIVE_SERVICE
       installs the existing runtime ABI table, and runs the native application
       thread.
 
+config RTBUS_DIAGNOSTICS_SERVICE
+    bool "Enable RTBus diagnostics service"
+    depends on RTBUS_NATIVE_SERVICE
+    default y
+    help
+      Enable the RTBus diagnostics task used by native applications and
+      Arduino sketches to exercise the runtime post, result write-back, and
+      completion wait path. Disable this for minimal production runtimes that
+      do not need built-in diagnostics.
+
 config RTBUS_RUNTIME_TIMEOUT_MAX_MS
     int "Maximum RTBus runtime wait timeout in milliseconds"
     default 100

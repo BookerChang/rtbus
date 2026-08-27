@@ -6,8 +6,6 @@ RAK4631.build.variant=RAK5005O
 RAK4631.build.mcu=cortex-m4
 RAK4631.build.f_cpu=64000000L
 RAK4631.build.arch=NRF52
-RAK4631.build.extra_flags=-DWISNODEZ_APPLICATION_SHORT_NAMES
-
 RAK4631.upload.tool=ymodem_upload
 RAK4631.upload.speed=115200
 RAK4631.bootloader.tool=rtduo_vscode

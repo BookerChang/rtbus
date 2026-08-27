@@ -46,7 +46,7 @@ SECTIONS
     __module_flash_end = ORIGIN(MODULE_FLASH) + LENGTH(MODULE_FLASH);
     __module_ram_start = ORIGIN(MODULE_RAM);
     __module_ram_end = ORIGIN(MODULE_RAM) + LENGTH(MODULE_RAM);
-    __wisnodez_api_table_base = 0x2000FF00;
+    __rtbus_native_api_table_base = 0x2000FF00;
 }
 
 ASSERT(__module_data_end <= __module_ram_end, "module RAM overflow")

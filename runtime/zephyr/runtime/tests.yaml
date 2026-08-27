@@ -10,4 +10,4 @@ common:
     - rak4631/nrf52840
 
 tests:
-  application.wisnodez.build: {}
+  application.rtbus.build: {}

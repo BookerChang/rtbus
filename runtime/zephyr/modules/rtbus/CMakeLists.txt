@@ -10,9 +10,10 @@ if(CONFIG_RTBUS_LIB)
 
   target_sources_ifdef(CONFIG_RTBUS_NATIVE_SERVICE app PRIVATE
     services/rtbus_runtime.c
-    services/rtbus_bootstrap.c
+    services/rtbus_diagnostics.c
     services/rtbus_event.c
     services/native_service/native_service.c
+    services/native_service/native_board.c
     services/rtbus_image.c
   )
 

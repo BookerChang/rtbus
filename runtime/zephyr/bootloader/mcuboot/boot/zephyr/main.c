@@ -32,6 +32,10 @@
 #include <soc.h>
 #include <zephyr/linker/linker-defs.h>
 
+#if defined(CONFIG_USE_SEGGER_RTT)
+#include <SEGGER_RTT.h>
+#endif
+
 #if defined(CONFIG_BOOT_DISABLE_CACHES)
 #include <zephyr/cache.h>
 #endif
@@ -554,6 +558,11 @@ int main(void)
 
     MCUBOOT_WATCHDOG_SETUP();
     MCUBOOT_WATCHDOG_FEED();
+
+#if defined(CONFIG_USE_SEGGER_RTT)
+    SEGGER_RTT_Init();
+    SEGGER_RTT_WriteString(0, "RTBus MCUBoot RTT probe\r\n");
+#endif
 
 #if !defined(MCUBOOT_DIRECT_XIP)
     BOOT_LOG_INF("Starting bootloader");

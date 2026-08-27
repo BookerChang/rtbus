@@ -42,7 +42,7 @@ void setup() {
   Serial.begin(115200);
   Serial.println("arduino application: setup");
 
-  // runtime_on_event(onEvent);
+  // rtbus_on_event(onEvent);
   // runtime_ble_adv_start();
 }
 
@@ -51,8 +51,8 @@ void loop() {
 
   delay(2000);
 
-  module_count = runtime_validation_add((int32_t)module_count, 2);
-  Serial.printf("arduino application: validation add result=%lu\r\n",
+  module_count = runtime_diagnostics_add((int32_t)module_count, 2);
+  Serial.printf("arduino application: diagnostics add result=%lu\r\n",
                 (unsigned long)module_count);
 
   {

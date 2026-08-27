@@ -17,7 +17,7 @@ extern "C" size_t __attribute__((weak)) runtime_arduino_serial_write(const uint8
         return 0;
     }
 
-    return runtime_serial_write(data, size);
+    return rtbus_serial_write(data, size);
 }
 
 HardwareSerial Serial;
@@ -90,16 +90,17 @@ size_t HardwareSerial::write(const uint8_t *buffer, size_t size) {
 
 size_t HardwareSerial::printf(const char *fmt, ...) {
     va_list args;
+    size_t written = 0;
 
     if (fmt == nullptr) {
         return 0;
     }
 
     va_start(args, fmt);
-    vprintk(fmt, args);
+    written = rtbus_serial_vprintf(fmt, args);
     va_end(args);
 
-    return 0;
+    return written;
 }
 
 size_t HardwareSerial::print(const char *text) {

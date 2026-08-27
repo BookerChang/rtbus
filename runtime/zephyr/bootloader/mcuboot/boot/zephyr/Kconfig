@@ -9,7 +9,7 @@ mainmenu "MCUboot configuration"
 
 comment "MCUboot-specific configuration options"
 
-config WISNODEZ_OTA_SHARED_DATA_ADDR
+config RTBUS_OTA_SHARED_DATA_ADDR
 	hex "RTBus OTA monitor shared data address"
 	default 0x2003F400
 	help

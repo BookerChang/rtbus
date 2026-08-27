@@ -16,7 +16,7 @@ static inline int runtime_cli_post(const char *line)
     struct application_at_cli_exec_line_req req;
 
     if (line == 0) {
-        return -WZ_EINVAL;
+        return -RTBUS_EINVAL;
     }
 
     req.address = (uint32_t)(uintptr_t)line;

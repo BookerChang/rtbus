@@ -566,7 +566,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    printf("WisNodeZ YMODEM upload\n");
+    printf("RTDuo YMODEM upload\n");
     printf("Port: %s\n", port);
     printf("Image: %s (%lu bytes)\n", image_path, (unsigned long)image_size);
 

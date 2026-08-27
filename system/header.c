@@ -556,7 +556,7 @@ static void build_header(uint8_t *header, const struct application_symbols *symb
     put_fixed_string(header + 16U, 16U, version);
     put_fixed_string(header + 32U, 64U, name);
     put_le32(header + 96U, ram_size);
-    put_le32(header + 100U, RTBUS_IMAGE_FLAGS_MAKE_NATIVE_ABI(WZ_API_VERSION));
+    put_le32(header + 100U, RTBUS_IMAGE_FLAGS_MAKE_NATIVE_ABI(RTBUS_API_VERSION));
 
     put_le32(reserved + 0U, symbols->entry - symbols->flash_start);
     put_le32(reserved + 4U, symbols->data_load - symbols->flash_start);

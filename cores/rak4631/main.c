@@ -17,8 +17,8 @@ unsigned long millis(void)
 
 int main(void)
 {
-    if (!runtime_api_is_ready()) {
-        return -WZ_ENOSYS;
+    if (!rtbus_api_is_ready()) {
+        return -RTBUS_ENOSYS;
     }
 
     arduino_setup();

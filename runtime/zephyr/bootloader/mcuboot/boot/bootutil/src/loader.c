@@ -60,9 +60,7 @@
 #endif
 
 #include "mcuboot_config/mcuboot_config.h"
-#include "bootutil/rak_define.h"
 
-ota_monitor_t *shared_data = (ota_monitor_t *)SHARED_DATA_ADDR;
 BOOT_LOG_MODULE_DECLARE(mcuboot);
 
 static struct boot_loader_state boot_data;
@@ -529,35 +527,6 @@ boot_rom_address_check(struct boot_loader_state *state)
     return 0;
 }
 #endif
-#if 1
-bool check_and_log_ota_status(void) {
-
-    if (shared_data->magic != OTA_MAGIC_NUM) {
-        return false;
-    }
-
-    BOOT_LOG_INF("--- Detected ---");
-    BOOT_LOG_INF("Magic: 0x%08X", shared_data->magic);
-    BOOT_LOG_INF("Done: %d", shared_data->done);
-    BOOT_LOG_INF("RC: 0x%08X", shared_data->rc);
-    BOOT_LOG_INF("Reason -  %d", 
-                 shared_data->start_reason.all_reason);
-    BOOT_LOG_INF("----------------------------");
-
-    return true;
-}
-void set_shared_data_rc(uint32_t rc) {
-
-    if (shared_data->magic != OTA_MAGIC_NUM) {
-        return ;
-    }
-    if (shared_data->rc == 0)
-    {
-        shared_data->rc = rc;
-    }
-    return ;
-}
-    #endif
 /*
  * Check that there is a valid image in a slot
  *
@@ -580,7 +549,6 @@ boot_validate_slot(struct boot_loader_state *state, int slot,
 #if !defined(MCUBOOT_SWAP_USING_OFFSET)
     (void)expected_swap_type;
 #endif
-    check_and_log_ota_status();
     fap = BOOT_IMG_AREA(state, slot);
     assert(fap != NULL);
 
@@ -741,10 +709,6 @@ check_validity:
 #endif
 
 out:
-
-    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
-        set_shared_data_rc(FUOTA_ERR_APPLY_FAILED);
-    }
 
     FIH_RET(fih_rc);
 }

@@ -2,83 +2,16 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-struct native_gpio_pin {
-    const struct device *port;
-    gpio_pin_t pin;
-};
+#include "native_board.h"
 
-#if DT_NODE_HAS_STATUS(DT_NODELABEL(gpio0), okay)
-#define NATIVE_GPIO_PORT0 DT_NODELABEL(gpio0)
-#elif DT_NODE_HAS_STATUS(DT_NODELABEL(gpioa), okay)
-#define NATIVE_GPIO_PORT0 DT_NODELABEL(gpioa)
+#if !DT_HAS_CHOSEN(rtbus_application_serial)
+#error "rtbus,application-serial is required by native Serial API"
 #endif
 
-#if DT_NODE_HAS_STATUS(DT_NODELABEL(gpio1), okay)
-#define NATIVE_GPIO_PORT1 DT_NODELABEL(gpio1)
-#elif DT_NODE_HAS_STATUS(DT_NODELABEL(gpiob), okay)
-#define NATIVE_GPIO_PORT1 DT_NODELABEL(gpiob)
-#endif
+#define NATIVE_SERIAL_NODE DT_CHOSEN(rtbus_application_serial)
 
-#if DT_NODE_HAS_STATUS(DT_NODELABEL(gpio2), okay)
-#define NATIVE_GPIO_PORT2 DT_NODELABEL(gpio2)
-#elif DT_NODE_HAS_STATUS(DT_NODELABEL(gpioc), okay)
-#define NATIVE_GPIO_PORT2 DT_NODELABEL(gpioc)
-#endif
-
-#ifdef NATIVE_GPIO_PORT0
-#define NATIVE_GPIO_PIN_PORT0(pin_) \
-    { .port = DEVICE_DT_GET(NATIVE_GPIO_PORT0), .pin = (pin_) }
-#else
-#define NATIVE_GPIO_PIN_PORT0(pin_) \
-    { .port = NULL, .pin = 0 }
-#endif
-
-#ifdef NATIVE_GPIO_PORT1
-#define NATIVE_GPIO_PIN_PORT1(pin_) \
-    { .port = DEVICE_DT_GET(NATIVE_GPIO_PORT1), .pin = (pin_) }
-#else
-#define NATIVE_GPIO_PIN_PORT1(pin_) \
-    { .port = NULL, .pin = 0 }
-#endif
-
-#ifdef NATIVE_GPIO_PORT2
-#define NATIVE_GPIO_PIN_PORT2(pin_) \
-    { .port = DEVICE_DT_GET(NATIVE_GPIO_PORT2), .pin = (pin_) }
-#else
-#define NATIVE_GPIO_PIN_PORT2(pin_) \
-    { .port = NULL, .pin = 0 }
-#endif
-
-/*
- * Arduino pin numbers are application ABI identifiers. Keep SoC/carrier-board
- * mapping here so native applications never depend on Zephyr device pointers.
- */
-static const struct native_gpio_pin native_gpio_pin_map[] = {
-    NATIVE_GPIO_PIN_PORT0(0),  NATIVE_GPIO_PIN_PORT0(1),
-    NATIVE_GPIO_PIN_PORT0(2),  NATIVE_GPIO_PIN_PORT0(3),
-    NATIVE_GPIO_PIN_PORT0(4),  NATIVE_GPIO_PIN_PORT0(5),
-    NATIVE_GPIO_PIN_PORT0(6),  NATIVE_GPIO_PIN_PORT0(7),
-    NATIVE_GPIO_PIN_PORT0(8),  NATIVE_GPIO_PIN_PORT0(9),
-    NATIVE_GPIO_PIN_PORT0(10), NATIVE_GPIO_PIN_PORT0(11),
-    NATIVE_GPIO_PIN_PORT0(12), NATIVE_GPIO_PIN_PORT0(13),
-    NATIVE_GPIO_PIN_PORT0(14), NATIVE_GPIO_PIN_PORT0(15),
-    NATIVE_GPIO_PIN_PORT1(0),  NATIVE_GPIO_PIN_PORT1(1),
-    NATIVE_GPIO_PIN_PORT1(2),  NATIVE_GPIO_PIN_PORT1(3),
-    NATIVE_GPIO_PIN_PORT1(4),  NATIVE_GPIO_PIN_PORT1(5),
-    NATIVE_GPIO_PIN_PORT1(6),  NATIVE_GPIO_PIN_PORT1(7),
-    NATIVE_GPIO_PIN_PORT1(8),  NATIVE_GPIO_PIN_PORT1(9),
-    NATIVE_GPIO_PIN_PORT1(10), NATIVE_GPIO_PIN_PORT1(11),
-    NATIVE_GPIO_PIN_PORT1(12), NATIVE_GPIO_PIN_PORT1(13),
-    NATIVE_GPIO_PIN_PORT1(14), NATIVE_GPIO_PIN_PORT1(15),
-    NATIVE_GPIO_PIN_PORT2(0),  NATIVE_GPIO_PIN_PORT2(1),
-    NATIVE_GPIO_PIN_PORT2(2),  NATIVE_GPIO_PIN_PORT2(3),
-    NATIVE_GPIO_PIN_PORT2(4),  NATIVE_GPIO_PIN_PORT2(5),
-    NATIVE_GPIO_PIN_PORT2(6),  NATIVE_GPIO_PIN_PORT2(7),
-    NATIVE_GPIO_PIN_PORT2(8),  NATIVE_GPIO_PIN_PORT2(9),
-    NATIVE_GPIO_PIN_PORT2(10), NATIVE_GPIO_PIN_PORT2(11),
-    NATIVE_GPIO_PIN_PORT2(12), NATIVE_GPIO_PIN_PORT2(13),
-    NATIVE_GPIO_PIN_PORT2(14), NATIVE_GPIO_PIN_PORT2(15),
-};
+static const struct device *const native_serial_dev =
+    DEVICE_DT_GET(NATIVE_SERIAL_NODE);
 
 static int native_api_rtbus_post(uint8_t task_id, uint32_t ctx_id,
                                  const void *payload, uint32_t payload_len)
@@ -126,7 +59,7 @@ out:
 
 static int native_api_result_wait(uint32_t timeout_ms)
 {
-    if (timeout_ms == WZ_WAIT_FOREVER) {
+    if (timeout_ms == RTBUS_WAIT_FOREVER) {
         return k_sem_take(&native_result_sem, K_FOREVER);
     }
 
@@ -171,14 +104,17 @@ static int32_t native_api_k_delay(uint32_t delay_ms)
 }
 
 static int native_gpio_resolve(uint32_t pin,
-                               const struct native_gpio_pin **entry)
+                               const struct gpio_dt_spec **entry)
 {
-    if (pin >= ARRAY_SIZE(native_gpio_pin_map)) {
+    size_t count;
+    const struct gpio_dt_spec *pins = native_board_gpio_pins(&count);
+
+    if (pin >= count) {
         return -EINVAL;
     }
 
-    *entry = &native_gpio_pin_map[pin];
-    if ((*entry)->port == NULL || !device_is_ready((*entry)->port)) {
+    *entry = &pins[pin];
+    if (!gpio_is_ready_dt(*entry)) {
         return -ENODEV;
     }
 
@@ -187,7 +123,7 @@ static int native_gpio_resolve(uint32_t pin,
 
 static int native_api_gpio_configure(uint32_t pin, uint32_t mode)
 {
-    const struct native_gpio_pin *entry;
+    const struct gpio_dt_spec *entry;
     gpio_flags_t flags;
     int ret;
 
@@ -213,12 +149,12 @@ static int native_api_gpio_configure(uint32_t pin, uint32_t mode)
         return -EINVAL;
     }
 
-    return gpio_pin_configure(entry->port, entry->pin, flags);
+    return gpio_pin_configure_dt(entry, flags);
 }
 
 static int native_api_gpio_write(uint32_t pin, uint32_t value)
 {
-    const struct native_gpio_pin *entry;
+    const struct gpio_dt_spec *entry;
     int ret;
 
     ret = native_gpio_resolve(pin, &entry);
@@ -226,12 +162,12 @@ static int native_api_gpio_write(uint32_t pin, uint32_t value)
         return ret;
     }
 
-    return gpio_pin_set(entry->port, entry->pin, value != 0U);
+    return gpio_pin_set_dt(entry, value != 0U);
 }
 
 static int native_api_gpio_read(uint32_t pin)
 {
-    const struct native_gpio_pin *entry;
+    const struct gpio_dt_spec *entry;
     int ret;
 
     ret = native_gpio_resolve(pin, &entry);
@@ -239,23 +175,10 @@ static int native_api_gpio_read(uint32_t pin)
         return ret;
     }
 
-    return gpio_pin_get(entry->port, entry->pin);
+    return gpio_pin_get_dt(entry);
 }
 
-static void native_api_printk(const char *fmt, ...)
-{
-    va_list args;
-
-    if (atomic_get(&native_console_suppressed) != 0) {
-        return;
-    }
-
-    va_start(args, fmt);
-    vprintk(fmt, args);
-    va_end(args);
-}
-
-static void native_api_vprintk(const char *fmt, va_list args)
+static void native_api_rtt_vprintf(const char *fmt, va_list args)
 {
     if (atomic_get(&native_console_suppressed) != 0) {
         return;
@@ -266,11 +189,14 @@ static void native_api_vprintk(const char *fmt, va_list args)
 
 static size_t native_api_serial_write(const uint8_t *data, size_t size)
 {
-    const struct device *dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
     size_t written = 0U;
 
-    if (data == NULL || size == 0U || !device_is_ready(dev) ||
+    if (data == NULL || size == 0U ||
         atomic_get(&native_console_suppressed) != 0) {
+        return 0U;
+    }
+
+    if (!device_is_ready(native_serial_dev)) {
         return 0U;
     }
 
@@ -281,12 +207,40 @@ static size_t native_api_serial_write(const uint8_t *data, size_t size)
     atomic_inc(&native_api_busy);
 
     for (size_t i = 0U; i < size; i++) {
-        uart_poll_out(dev, data[i]);
+        uart_poll_out(native_serial_dev, data[i]);
         written++;
     }
 
     atomic_dec(&native_api_busy);
     return written;
+}
+
+static size_t native_api_serial_vprintf(const char *fmt, va_list args)
+{
+    char buffer[160];
+    int length;
+
+    if (fmt == NULL || atomic_get(&native_console_suppressed) != 0) {
+        return 0U;
+    }
+
+    /*
+     * The format string and varargs belong to native application RAM. Format
+     * into runtime-owned memory before handing bytes to the selected serial.
+     */
+    atomic_inc(&native_api_busy);
+    length = vsnprintk(buffer, sizeof(buffer), fmt, args);
+    atomic_dec(&native_api_busy);
+
+    if (length <= 0) {
+        return 0U;
+    }
+
+    if ((size_t)length >= sizeof(buffer)) {
+        length = sizeof(buffer) - 1;
+    }
+
+    return native_api_serial_write((const uint8_t *)buffer, (size_t)length);
 }
 
 /* Strong override for mod_rtbus's weak async-post hook. */
@@ -310,6 +264,8 @@ __strong int rtbus_process_async_posts(void)
         atomic_dec(&native_api_busy);
 
         if (ret != 0) {
+            printk("native_service: async rtbus_post failed task_id=%u ctx_id=0x%08x payload_len=%u ret=%d\n",
+                   msg.task_id, msg.ctx_id, msg.payload_len, ret);
             return ret;
         }
     }

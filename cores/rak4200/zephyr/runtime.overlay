@@ -4,8 +4,19 @@
 		zephyr,shell-uart = &usart2;
 		zephyr,sram = &sram0;
 		zephyr,flash = &flash0;
+		rtbus,application-serial = &usart2;
 		zephyr,code-partition = &slot0_partition;
 		zephyr,settings-partition = &storage_partition;
+	};
+
+	rtbus_native_gpio: rtbus-native-gpio {
+		/*
+		 * Application GPIO export map.
+		 *
+		 * Only board-owned pins that are safe for native applications should
+		 * be listed here. Leaving this empty avoids exposing runtime,
+		 * peripheral, wake, and low-power pins as raw GPIO ABI.
+		 */
 	};
 };
 

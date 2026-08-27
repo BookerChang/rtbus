@@ -35,23 +35,32 @@ Current RTBus subsystem split:
 
 - `services/rtbus_runtime.c`: owns the static Zephyr thread that calls
   `rtbus_init()` and runs the `rtbus_process()` loop.
-- `services/rtbus_bootstrap.c`: handles RTBus system bootstrap events, including
-  starting the native service from the `RTBUS_SYS_INIT` event.
+- `services/rtbus_diagnostics.c`: owns the diagnostics task. This task uses a
+  `switch (ctx->id)` handler and currently starts the native service from its
+  `RTBUS_SYS_INIT` case.
 - `services/native_service/`: owns native application loading, ABI table setup,
   and the native application thread.
 
 Expected boot flow:
 
-1. Zephyr starts the static RTBus runtime thread from `rtbus_runtime.c`.
-2. That thread calls `rtbus_init()`.
-3. EMOS/RTBus posts `RTBUS_SYS_INIT` to registered init tasks.
-4. `rtbus_bootstrap.c` receives that event and calls `native_service_start()`.
-5. The native service creates/runs the native application thread.
+1. Zephyr starts the static RTBus runtime thread from `rtbus_runtime.c`, then
+   the thread calls `rtbus_init()`.
+2. EMOS/RTBus posts `RTBUS_SYS_INIT`; `rtbus_diagnostics.c` receives that event
+   and calls `native_service_start()`.
+3. The native service creates/runs the native application thread.
 
 The runtime app `main.c` is intentionally minimal and may only return `0`.
 
-`dummy_service.c` has been removed. Its former role is now represented by
-`rtbus_bootstrap.c`, and the task id name is `APPLICATION_TASK_NATIVE_BOOTSTRAP`.
+`dummy_service.c` and `rtbus_bootstrap.c` have been removed. Runtime startup is
+currently represented by the diagnostics task.
+
+### RTBus Task Addition Rule
+
+Use the diagnostics service pattern as the default maintenance rule for adding
+future RTBus task event handling.
+
+- Implement task handlers with a `switch (ctx->id)` and add each supported event
+  as an explicit `case`.
 
 ## Main Areas
 
@@ -118,16 +127,14 @@ make board.profile BOARD_PROFILE=rak4631
 - Treat upstream or vendored trees such as `zephyr/`, `modules/`, and MCUboot
   code as higher risk; keep changes there minimal and justified.
 - Preserve the public package identity `rtbus:rtduo`.
-- Some low-level ABI names may still contain old WisNodeZ naming for runtime
-  compatibility; do not rename ABI symbols casually.
+- Low-level ABI names have been migrated to RTBus naming; do not reintroduce
+  legacy names for compatibility unless explicitly requested.
 - If a name is ABI-facing or shared with native applications, verify the ABI
   impact before renaming it. Prefer internal RTBus/native naming only behind
   compatibility layers.
 - `native_service` naming is intentional for the runtime-side service that
   loads and runs the native application.
-- `WISNODEZ_API_SLOT_*`, `WZ_API_*`, and other ABI-facing names may still exist
-  for compatibility. Do not convert them to RTBus names unless the ABI migration
-  is explicitly part of the task.
+- ABI-facing native API names should use `RTBUS_API_*`.
 - The native application owns its own RAM region. Avoid adding Zephyr heap usage
   unless there is a concrete need.
 

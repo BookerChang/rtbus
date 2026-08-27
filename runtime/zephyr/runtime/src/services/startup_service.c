@@ -23,6 +23,12 @@ LOG_MODULE_REGISTER(startup_service, LOG_LEVEL_INF);
 #define STARTUP_USB_PID 0x0001
 #define STARTUP_USB_DTR_POLL_INTERVAL_MS 100
 
+#if DT_HAS_CHOSEN(rtbus_application_serial)
+#define STARTUP_APPLICATION_SERIAL_NODE DT_CHOSEN(rtbus_application_serial)
+#elif DT_HAS_CHOSEN(zephyr_console)
+#define STARTUP_APPLICATION_SERIAL_NODE DT_CHOSEN(zephyr_console)
+#endif
+
 #if defined(CONFIG_USB_DEVICE_STACK_NEXT) && \
     !defined(CONFIG_CDC_ACM_SERIAL_INITIALIZE_AT_BOOT)
 USBD_DEVICE_DEFINE(startup_usb_cdc_acm,
@@ -59,11 +65,14 @@ static int startup_usb_register_cdc_acm(struct usbd_context *const uds_ctx)
         return ret;
     }
 
+#if DT_HAS_CHOSEN(zephyr_uart_mcumgr) && \
+    DT_NODE_HAS_COMPAT(DT_CHOSEN(zephyr_uart_mcumgr), zephyr_cdc_acm_uart)
     ret = usbd_register_class(uds_ctx, "cdc_acm_1", USBD_SPEED_FS, 1);
     if (ret != 0) {
         LOG_ERR("USB register mcumgr CDC ACM failed: %d", ret);
         return ret;
     }
+#endif
 
     return usbd_device_set_code_triple(uds_ctx, USBD_SPEED_FS,
                        USB_BCC_MISCELLANEOUS, 0x02, 0x01);
@@ -71,7 +80,7 @@ static int startup_usb_register_cdc_acm(struct usbd_context *const uds_ctx)
 
 static void startup_usb_dtr_work_handler(struct k_work *work)
 {
-    const struct device *uart_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
+    const struct device *uart_dev = DEVICE_DT_GET(STARTUP_APPLICATION_SERIAL_NODE);
     uint32_t dtr = 0;
 
     ARG_UNUSED(work);
@@ -101,7 +110,7 @@ static void startup_usb_dtr_work_handler(struct k_work *work)
 
 static int startup_usb_init(void)
 {
-    const struct device *uart_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
+    const struct device *uart_dev = DEVICE_DT_GET(STARTUP_APPLICATION_SERIAL_NODE);
     int ret;
 
     if (startup_usb_ready) {

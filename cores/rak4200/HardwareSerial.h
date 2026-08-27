@@ -4,9 +4,9 @@
 #include <stdint.h>
 
 #if defined(__GNUC__)
-#define WISNODEZ_SERIAL_PRINTF_FORMAT __attribute__((format(printf, 2, 3)))
+#define RTDUO_SERIAL_PRINTF_FORMAT __attribute__((format(printf, 2, 3)))
 #else
-#define WISNODEZ_SERIAL_PRINTF_FORMAT
+#define RTDUO_SERIAL_PRINTF_FORMAT
 #endif
 
 class HardwareSerial {
@@ -22,7 +22,7 @@ public:
     size_t write(uint8_t value);
     size_t write(const uint8_t *buffer, size_t size);
 
-    size_t printf(const char *fmt, ...) WISNODEZ_SERIAL_PRINTF_FORMAT;
+    size_t printf(const char *fmt, ...) RTDUO_SERIAL_PRINTF_FORMAT;
     size_t print(const char *text);
     size_t print(int value);
     size_t print(unsigned int value);
@@ -38,4 +38,4 @@ public:
 
 extern HardwareSerial Serial;
 
-#undef WISNODEZ_SERIAL_PRINTF_FORMAT
+#undef RTDUO_SERIAL_PRINTF_FORMAT

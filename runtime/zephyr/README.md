@@ -1,12 +1,12 @@
-# WisNodeZ Zephyr Boards
+# RTBus Zephyr Boards
 
-`BOARD_PROFILE` is the WisNodeZ product-level board selection. It is not always
+`BOARD_PROFILE` is the RTBus product-level board selection. It is not always
 the same as the Zephyr board name.
 
 Each board/profile directory owns the metadata that explains where the Zephyr
 board support comes from:
 
-- `PROFILE_NAME`: WisNodeZ profile name.
+- `PROFILE_NAME`: RTBus profile name.
 - `ZEPHYR_BOARD`: board name passed to `west build -b`.
 - `ZEPHYR_BOARD_SOURCE`: `upstream` for Zephyr-provided boards, `project` for
   boards provided by this repository.

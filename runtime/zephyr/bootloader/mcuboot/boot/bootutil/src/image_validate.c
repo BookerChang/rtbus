@@ -44,7 +44,6 @@
 
 #include "mcuboot_config/mcuboot_config.h"
 #include "bootutil/bootutil_log.h"
-#include "bootutil/rak_define.h"
 
 BOOT_LOG_MODULE_DECLARE(mcuboot);
 #if defined(MCUBOOT_UUID_VID) || defined(MCUBOOT_UUID_CID)
@@ -355,7 +354,6 @@ bootutil_img_validate(struct boot_loader_state *state,
             FIH_CALL(boot_fih_memequal, fih_rc, hash, buf, sizeof(hash));
             if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
                 BOOT_LOG_INF("!!! HASH MISMATCH !!!");
-                set_shared_data_rc(FUOTA_ERR_IMAGE_HASH_MISMATCH);
                 FIH_SET(fih_rc, FIH_FAILURE);
                 goto out;
             }
@@ -564,7 +562,6 @@ bootutil_img_validate(struct boot_loader_state *state,
 #endif
 #ifdef EXPECTED_SIG_TLV
 if (FIH_NOT_EQ(valid_signature, FIH_SUCCESS)) {
-    set_shared_data_rc(FUOTA_ERR_IMAGE_SIGNATURE_INVALID);
     BOOT_LOG_INF("!!! SIGNATURE VERIFY FAILED !!!");
 }
     FIH_SET(fih_rc, valid_signature);

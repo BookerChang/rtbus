@@ -23,10 +23,13 @@
 #include <rtbus/runtime_event.h>
 
 #include "runtime_api.h"
-#include "native_abi.h"
 
 #ifndef __strong
 #define __strong
+#endif
+
+#if !defined(CONFIG_RTBUS_NATIVE_API_TABLE_BASE)
+#error "CONFIG_RTBUS_NATIVE_API_TABLE_BASE is required by native_service"
 #endif
 
 #define NATIVE_RAM_NODE            DT_NODELABEL(shared_upgrade_ram)
@@ -41,17 +44,17 @@
 #define NATIVE_RTBUS_POST_PAYLOAD_MAX   32
 #define NATIVE_EVENT_QUEUE_DEPTH           8
 #define NATIVE_UPGRADE_HANDOFF_TIMEOUT_MS 2000
-#define NATIVE_REQUIRED_ABI_VERSION        RTBUS_NATIVE_API_VERSION
+#define NATIVE_REQUIRED_ABI_VERSION        RTBUS_API_VERSION
 #define NATIVE_WAKE_IRQ       (1U << 0)
 #define NATIVE_WAKE_PROCESS   (1U << 1)
 #define NATIVE_WAKE_ALL       (NATIVE_WAKE_IRQ | NATIVE_WAKE_PROCESS)
 
 BUILD_ASSERT(CONFIG_RTBUS_IMAGE_RAM_MAX <= NATIVE_RAM_POOL_SIZE,
              "CONFIG_RTBUS_IMAGE_RAM_MAX exceeds shared_upgrade_ram");
-BUILD_ASSERT(RTBUS_NATIVE_API_TABLE_BASE == NATIVE_API_BASE,
-             "RTBUS_NATIVE_API_TABLE_BASE must match shared_ram");
-BUILD_ASSERT(RTBUS_NATIVE_API_SLOT_COUNT * sizeof(uintptr_t) <= NATIVE_API_SIZE,
-             "shared_ram is too small for WisnodeZ API table");
+BUILD_ASSERT(CONFIG_RTBUS_NATIVE_API_TABLE_BASE == NATIVE_API_BASE,
+             "CONFIG_RTBUS_NATIVE_API_TABLE_BASE must match shared_ram");
+BUILD_ASSERT(RTBUS_API_SLOT_COUNT * sizeof(uintptr_t) <= NATIVE_API_SIZE,
+             "shared_ram is too small for RTBus API table");
 BUILD_ASSERT(APPLICATION_LORAWAN_SEND_HEADER_SIZE +
              APPLICATION_LORAWAN_SEND_PAYLOAD_MAX <=
              NATIVE_RTBUS_POST_PAYLOAD_MAX,
@@ -413,7 +416,7 @@ int native_service_start(void)
         return 0;
     }
 
-    native_abi_table_install();
+    native_api_table_install();
 
     rc = native_load();
     if (rc != 0) {

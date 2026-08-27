@@ -107,7 +107,6 @@ build.arduino/package/hardware/rtbus/rtduo
 
 ## Status
 
-This repository is an early extraction of the Arduino base from the WisNodeZ
-prototype work. Some low-level ABI symbols still keep their original WisNodeZ
-names for runtime compatibility while the public Arduino package identity has
-been moved to `rtbus:rtduo`.
+This repository contains the RTBus RTDuo Arduino platform. The public Arduino
+package identity is `rtbus:rtduo`, and native runtime ABI names use RTBus
+terminology.
