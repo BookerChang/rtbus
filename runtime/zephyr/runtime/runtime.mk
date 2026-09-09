@@ -1,5 +1,5 @@
 RUNTIME_APP_DIR := runtime/zephyr/runtime
-RUNTIME_BOARD_DIR := cores/$(BOARD_PROFILE)/zephyr
+RUNTIME_BOARD_DIR ?= cores/$(BOARD_PROFILE)/zephyr
 BOARD_RUNTIME_CONF ?= $(RUNTIME_BOARD_DIR)/runtime.conf
 BOARD_RUNTIME_OVERLAY ?= $(RUNTIME_BOARD_DIR)/runtime.overlay
 RUNTIME_BUILD_DIR ?= build.zephyr/runtime/$(BOARD_PROFILE)

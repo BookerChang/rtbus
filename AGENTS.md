@@ -67,7 +67,8 @@ future RTBus task event handling.
 - `cores/`, `variants/`, `libraries/`, `system/`: Arduino platform sources.
 - `runtime/zephyr/`: open-source Zephyr runtime baseline.
 - `runtime/zephyr/runtime/`: RTBus runtime firmware.
-- `runtime/zephyr/bootloader/`: MCUboot integration and bootloader profiles.
+- `runtime/zephyr/bootloader.mk`: MCUboot build wrapper.
+- `bootloader/mcuboot/`: west-provided MCUboot source.
 - `runtime/zephyr/application/`: standalone native C application build path.
 - `bootloader/`, `zephyr/`, `modules/`: upstream or vendored platform pieces.
 - `build.arduino/`, `build.zephyr/`, `build.zephyr.tmp/`: generated build output.

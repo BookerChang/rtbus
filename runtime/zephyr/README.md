@@ -1,10 +1,10 @@
-# RTBus Zephyr Boards
+# RTBus Zephyr Profiles
 
 `BOARD_PROFILE` is the RTBus product-level board selection. It is not always
 the same as the Zephyr board name.
 
-Each board/profile directory owns the metadata that explains where the Zephyr
-board support comes from:
+Each `cores/<profile>/profile.mk` file owns the metadata that explains where
+the Zephyr board support comes from:
 
 - `PROFILE_NAME`: RTBus profile name.
 - `ZEPHYR_BOARD`: board name passed to `west build -b`.
@@ -15,10 +15,9 @@ board support comes from:
 - `ZEPHYR_SOC`: SoC used by the Zephyr board.
 - `JLINK_TARGET`: SEGGER J-Link target name.
 - `BOARD_ROOTS`: optional Zephyr board root list. Project-owned boards should
-  keep their board tree in the project-level `zephyr-boards` root, for example
-  `zephyr-boards/boards/rakwireless/rak4200`.
+  keep their board tree under the owning core, for example
+  `cores/rak4200/zephyr/boards/rakwireless/rak4200`.
 
-Runtime, bootloader, and native application files still live in their existing
-per-layer `boards/<profile>` directories. The profile layer is the single place
-for board identity and source mapping; per-layer directories describe how each
-firmware layer uses that profile.
+Runtime, bootloader, profile, and project-owned Zephyr board files live under
+the owning `cores/<profile>` directory. The profile layer is the single place
+for board identity and source mapping.

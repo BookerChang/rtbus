@@ -9,7 +9,7 @@ ARDUINO_PACKAGE_DIR ?= $(ARDUINO_PACKAGE_ROOT)/hardware/rtbus/rtduo
 ARDUINO_SKETCH ?= libraries/RTDuo/examples/HelloWorld
 ARDUINO_BUILD_ROOT ?= build.arduino
 BOOTLOADER ?= bootloader
-BOOTLOADER_APP_DIR ?= runtime/zephyr/bootloader
+BOOTLOADER_APP_DIR ?= bootloader
 RUNTIME_APP_DIR ?= runtime/zephyr/runtime
 APPLICATION_APP_DIR ?= runtime/zephyr/application
 ZEPHYR_BUILD_ROOT ?= build.zephyr
@@ -18,11 +18,8 @@ ZEPHYR_SHARE_ROOT ?= zephyr-share
 
 BOARD_PROFILE ?=
 ARDUINO_BOARD_ID_rak4631 := RAK4631
-ARDUINO_BOARD_ID_rak3172 := RAK3172
-ARDUINO_BOARD_ID_rak3172f := RAK3172F
 ARDUINO_BOARD_ID_rak3172p := RAK3172P
 ARDUINO_BOARD_ID_rak3172t := RAK3172T
-ARDUINO_BOARD_ID_rak11720 := RAK11720
 ARDUINO_BOARD_ID_rak4200 := RAK4200
 ARDUINO_BOARD_ID ?= $(ARDUINO_BOARD_ID_$(BOARD_PROFILE))
 ARDUINO_FQBN ?= rtbus:rtduo:$(ARDUINO_BOARD_ID)
@@ -68,7 +65,7 @@ BOARD_ROOT_ARG = $(if $(strip $(BOARD_ROOTS)),-DBOARD_ROOT="$(BOARD_ROOT_CMAKE)"
 docker_path = $(if $(filter /%,$(1)),$(1),$(DOCKER_WORK)/$(1))
 
 include runtime/zephyr/runtime/runtime.mk
-include runtime/zephyr/bootloader/bootloader.mk
+include runtime/zephyr/bootloader.mk
 include runtime/zephyr/application/application.mk
 
 DOCKER_RUN = $(VM) run --rm -v $(CURDIR):$(DOCKER_WORK) -w $(DOCKER_WORK) $(DOCKER_IMAGE)
@@ -118,6 +115,11 @@ jflash_erase:
 	$(JLINK_EXE) -device $(JLINK_TARGET) -if $(JLINK_IF) -speed $(JLINK_SPEED) -autoconnect 1 -nogui 1 -IP $(JLINK_IP) -CommanderScript $(JLINK_ERASE_SCRIPT)
 	@rm -f $(JLINK_ERASE_SCRIPT)
 	@echo "current time: $$(date +'%Y-%m-%d %H:%M:%S')"
+
+.PHONY: jlink_rttlog
+jlink_rttlog:
+	$(JLINK_CMD).device $(JLINK_TARGET)
+	myjlink.rttlog
 
 .PHONY: jflash_write.runtime
 jflash_write.runtime:

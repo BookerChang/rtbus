@@ -1,7 +1,0 @@
-/ {
-	chosen {
-		zephyr,flash = &flash0;
-		zephyr,flash-controller = &flash;
-		zephyr,code-partition = &boot_partition;
-	};
-};

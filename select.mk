@@ -5,6 +5,7 @@ BOARD_PROFILE_PROMPT_GOALS := \
 	application \
 	application.clean \
 	jflash_erase \
+	jlink_rttlog \
 	jflash_write.runtime \
 	jflash_write.application \
 	arduino.compile

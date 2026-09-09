@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MPL-2.0
 
-BOARD_VENDOR ?= rakwireless
-BOARD_PROFILE_ROOT := runtime/zephyr/boards/boards/$(BOARD_VENDOR)
-BOARD_PROFILE_CHOICES := rak4631 rak3172 rak3172f rak3172p rak3172t rak11720 rak4200
+BOARD_PROFILE_ROOT := cores
+BOARD_PROFILE_ORDER := rak4631 rak3172p rak3172t rak4200
+BOARD_PROFILE_CHOICES := $(strip $(foreach profile,$(BOARD_PROFILE_ORDER),$(if $(wildcard $(BOARD_PROFILE_ROOT)/$(profile)/profile.mk),$(profile))))

@@ -12,35 +12,6 @@ RAK4631.bootloader.tool=rtduo_vscode
 RAK4631.upload.maximum_size=40832
 RAK4631.upload.maximum_data_size=8192
 
-RAK3172.name=RAK3172 RTDuo
-
-RAK3172.build.board=RAK3172
-RAK3172.build.core=rak3172
-RAK3172.build.variant=RAK5005O
-RAK3172.build.mcu=cortex-m4
-RAK3172.build.f_cpu=48000000L
-RAK3172.build.arch=STM32WL
-
-RAK3172.upload.tool=ymodem_upload
-RAK3172.upload.speed=115200
-RAK3172.bootloader.tool=rtduo_vscode
-RAK3172.upload.maximum_size=40832
-RAK3172.upload.maximum_data_size=4096
-
-RAK3172F.name=RAK3172F RTDuo
-
-RAK3172F.build.board=RAK3172F
-RAK3172F.build.core=rak3172f
-RAK3172F.build.variant=RAK5005O
-RAK3172F.build.mcu=cortex-m4
-RAK3172F.build.f_cpu=48000000L
-RAK3172F.build.arch=STM32WL
-
-RAK3172F.upload.tool=ymodem_upload
-RAK3172F.upload.speed=115200
-RAK3172F.bootloader.tool=rtduo_vscode
-RAK3172F.upload.maximum_size=40832
-RAK3172F.upload.maximum_data_size=4096
 
 RAK3172P.name=RAK3172P RTDuo
 
