@@ -25,6 +25,10 @@ static uint8_t rtbus_diagnostics_process(rtbus_ctx_t *ctx)
             }
             break;
 
+        case APPLICATION_DIAGNOSTICS_CLI:
+            LOG_INF("Diagnostics test event received");
+            break;
+
 #if defined(CONFIG_RTBUS_DIAGNOSTICS_SERVICE)
         case APPLICATION_DIAGNOSTICS_ADD:
             {
@@ -56,6 +60,6 @@ static uint8_t rtbus_diagnostics_process(rtbus_ctx_t *ctx)
 }
 
 RTBUS_TASK_REGISTER(rtbus_diagnostics_task,
-                    APPLICATION_TASK_DIAGNOSTICS,
+                    RTBUS_TASK_DIAGNOSTICS,
                     RTBUS_TASK_PRIORITY_LOW,
                     rtbus_diagnostics_process);

@@ -6,7 +6,7 @@
 #define RUNTIME_API_SLOTS_H_
 
 #define RTBUS_API_MAGIC      0x52544150U
-#define RTBUS_API_VERSION    7U
+#define RTBUS_API_VERSION    12U
 #define RTBUS_ENOSYS         38
 #define RTBUS_EINVAL         22
 #define RTBUS_EMSGSIZE       90
@@ -27,7 +27,9 @@
 #define RTBUS_API_SLOT_GPIO_READ      11
 #define RTBUS_API_SLOT_ON_EVENT       12
 #define RTBUS_API_SLOT_SERIAL_VPRINTF 13
-#define RTBUS_API_SLOT_COUNT          14
+#define RTBUS_API_SLOT_SERIAL_READ    14
+#define RTBUS_API_SLOT_MILLIS         15
+#define RTBUS_API_SLOT_COUNT          16
 
 #define RTBUS_API_SLOT_OFFSET(_slot) ((_slot) * 4)
 

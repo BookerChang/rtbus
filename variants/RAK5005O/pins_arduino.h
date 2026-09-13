@@ -5,54 +5,55 @@
  *
  * These values are application ABI pin numbers. The runtime owns the actual
  * board-to-Zephyr GPIO map and may translate each identifier differently per
- * module/carrier combination.
+ * module/carrier combination. STM32 GPIO IDs use bank-sized numbering:
+ * PAx = IOx, PBx = IO(16 + x), PCx = IO(32 + x).
  */
 
-#define D0  0U
-#define D1  1U
-#define D2  2U
-#define D3  3U
-#define D4  4U
-#define D5  5U
-#define D6  6U
-#define D7  7U
-#define D8  8U
-#define D9  9U
-#define D10 10U
-#define D11 11U
-#define D12 12U
-#define D13 13U
-#define D14 14U
-#define D15 15U
-#define D16 16U
-#define D17 17U
-#define D18 18U
-#define D19 19U
-#define D20 20U
-#define D21 21U
-#define D22 22U
-#define D23 23U
-#define D24 24U
-#define D25 25U
-#define D26 26U
-#define D27 27U
-#define D28 28U
-#define D29 29U
-#define D30 30U
-#define D31 31U
-#define D32 32U
-#define D33 33U
-#define D34 34U
-#define D35 35U
-#define D36 36U
-#define D37 37U
-#define D38 38U
-#define D39 39U
-#define D40 40U
-#define D41 41U
-#define D42 42U
-#define D43 43U
-#define D44 44U
-#define D45 45U
-#define D46 46U
-#define D47 47U
+#define IO0  0U  //BSP PA0
+#define IO1  1U  //BSP PA1
+#define IO2  2U
+#define IO3  3U
+#define IO4  4U
+#define IO5  5U
+#define IO6  6U
+#define IO7  7U
+#define IO8  8U
+#define IO9  9U
+#define IO10 10U
+#define IO11 11U
+#define IO12 12U
+#define IO13 13U
+#define IO14 14U
+#define IO15 15U
+#define IO16 16U
+#define IO17 17U
+#define IO18 18U
+#define IO19 19U
+#define IO20 20U
+#define IO21 21U  //BSP PB5
+#define IO22 22U
+#define IO23 23U
+#define IO24 24U
+#define IO25 25U
+#define IO26 26U
+#define IO27 27U
+#define IO28 28U
+#define IO29 29U
+#define IO30 30U
+#define IO31 31U
+#define IO32 32U
+#define IO33 33U
+#define IO34 34U
+#define IO35 35U
+#define IO36 36U
+#define IO37 37U
+#define IO38 38U
+#define IO39 39U
+#define IO40 40U
+#define IO41 41U
+#define IO42 42U
+#define IO43 43U
+#define IO44 44U
+#define IO45 45U
+#define IO46 46U
+#define IO47 47U

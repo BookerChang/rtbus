@@ -28,23 +28,27 @@ struct runtime_event_tlv {
 };
 
 typedef int (*rtbus_post_api_t)(uint8_t task_id, uint32_t ctx_id, const void *payload, uint32_t payload_len);
-typedef size_t (*rtbus_serial_write_api_t)(const uint8_t *data, size_t size);
+typedef size_t (*rtbus_serial_write_api_t)(uint32_t port, const uint8_t *data, size_t size);
+typedef int32_t (*rtbus_serial_read_api_t)(uint32_t port);
 typedef int (*rtbus_gpio_configure_api_t)(uint32_t pin, uint32_t mode);
 typedef int (*rtbus_gpio_write_api_t)(uint32_t pin, uint32_t value);
 typedef int (*rtbus_gpio_read_api_t)(uint32_t pin);
 typedef void (*runtime_event_callback_t)( const struct runtime_event_tlv *event);
 typedef int (*rtbus_on_event_api_t)(runtime_event_callback_t callback);
+typedef uint32_t (*rtbus_millis_api_t)(void);
 
 extern int rtbus_api_is_ready(void);
 extern int rtbus_on_event(runtime_event_callback_t callback);
 extern int rtbus_post_wait_result(uint8_t task_id, uint32_t ctx_id, const void *payload, uint32_t payload_len, volatile int32_t *result);
-extern size_t rtbus_serial_write(const uint8_t *data, size_t size);
-extern size_t rtbus_serial_vprintf(const char *fmt, va_list args);
+extern size_t rtbus_serial_write(uint32_t port, const uint8_t *data, size_t size);
+extern size_t rtbus_serial_vprintf(uint32_t port, const char *fmt, va_list args);
+extern int32_t rtbus_serial_read(uint32_t port);
 extern int rtbus_gpio_configure(uint32_t pin, uint32_t mode);
 extern int rtbus_gpio_write(uint32_t pin, uint32_t value);
 extern int rtbus_gpio_read(uint32_t pin);
 extern int rtbus_post(uint8_t task_id, uint32_t ctx_id, const void *payload, uint32_t payload_len);
 extern int32_t k_delay(uint32_t delay_ms);
+extern uint32_t rtbus_millis(void);
 extern void rtbus_rtt_vprintf(const char *fmt, va_list args);
 
 #ifdef __cplusplus

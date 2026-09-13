@@ -4,6 +4,7 @@
         /delete-property/ zephyr,uart-mcumgr;
         /delete-property/ zephyr,shell-uart;
         rtbus,application-serial = &cdc_acm_uart0;
+        rtbus,application-serial1 = &uart1;
         zephyr,code-partition = &slot0_partition;
         zephyr,settings-partition = &storage_partition;
     };

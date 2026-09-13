@@ -18,8 +18,11 @@ extern "C" {
 #define APPLICATION_LORAWAN_SEND_HEADER_SIZE        8U
 #define APPLICATION_LORAWAN_SEND_PAYLOAD_MAX        24U
 #define APPLICATION_DIAGNOSTICS_ADD_PAYLOAD_SIZE    12U
-#define APPLICATION_AT_CLI_EXEC_LINE_MAX            256U
+#define APPLICATION_RUNTIME_SERIAL_BEGIN_PAYLOAD_SIZE 12U
 #define APPLICATION_BLE_SET_SECURITY_PAYLOAD_SIZE   12U
+#define RTBUS_CLI_LINE_MAX                          256U
+#define RTBUS_SERIAL_PORT_0                         0U
+#define RTBUS_SERIAL_PORT_1                         1U
 
 enum runtime_gpio_mode {
     RUNTIME_GPIO_MODE_INPUT = 0,
@@ -28,29 +31,41 @@ enum runtime_gpio_mode {
     RUNTIME_GPIO_MODE_INPUT_PULLDOWN,
 };
 
-enum application_task_id {
-    APPLICATION_TASK_DIAGNOSTICS = 0,
-    APPLICATION_TASK_AT_CLI,
+enum rtbus_task_id {
+    RTBUS_TASK_DIAGNOSTICS = 0,
+    RTBUS_TASK_CLI,
+    RTBUS_TASK_RUNTIME_SERIAL,
 };
+
+enum rtbus_cli_eid {
+    RTBUS_CLI_EID_NONE = 0,
+    RTBUS_CLI_EID_INPUT,
+};
+
+#define RTBUS_CLI_INPUT \
+    APPLICATION_APP_EVT(RTBUS_CLI_EID_INPUT)
+
+enum application_runtime_serial_eid {
+    APPLICATION_RUNTIME_SERIAL_EID_NONE = 0,
+    APPLICATION_RUNTIME_SERIAL_EID_BEGIN,
+};
+
+#define APPLICATION_RUNTIME_SERIAL_BEGIN \
+    APPLICATION_APP_EVT(APPLICATION_RUNTIME_SERIAL_EID_BEGIN)
 
 #define APPLICATION_LORAWAN_SEND \
     APPLICATION_APP_EVT(APPLICATION_LORAWAN_EID_SEND)
 
-enum application_at_cli_eid {
-    APPLICATION_AT_CLI_EID_NONE = 0,
-    APPLICATION_AT_CLI_EID_EXEC_LINE,
-};
-
-#define APPLICATION_AT_CLI_EXEC_LINE \
-    APPLICATION_APP_EVT(APPLICATION_AT_CLI_EID_EXEC_LINE)
-
 enum application_diagnostics_eid {
     APPLICATION_DIAGNOSTICS_EID_NONE = 0,
     APPLICATION_DIAGNOSTICS_EID_ADD,
+    APPLICATION_DIAGNOSTICS_EID_CLI,
 };
 
 #define APPLICATION_DIAGNOSTICS_ADD \
     APPLICATION_APP_EVT(APPLICATION_DIAGNOSTICS_EID_ADD)
+#define APPLICATION_DIAGNOSTICS_CLI \
+    APPLICATION_APP_EVT(APPLICATION_DIAGNOSTICS_EID_CLI)
 
 enum application_dfu_eid {
     APPLICATION_DFU_EID_NONE = 0,
@@ -77,20 +92,16 @@ enum application_dfu_source {
 #define APPLICATION_DFU_IMAGE_STAGED \
     APPLICATION_APP_EVT(APPLICATION_DFU_EID_IMAGE_STAGED)
 
-struct application_at_cli_exec_line_req {
-    uint32_t address;
-    uint32_t done_task_id;
-    uint32_t done_event_id;
-};
-
-struct application_at_cli_exec_line_done_req {
-    int32_t status;
-};
-
 struct application_diagnostics_add_req {
     uint32_t result_addr;
     int32_t lhs;
     int32_t rhs;
+};
+
+struct application_runtime_serial_begin_req {
+    uint32_t result_addr;
+    uint32_t port;
+    uint32_t baud;
 };
 
 #ifdef __cplusplus

@@ -1,0 +1,17 @@
+description: RTBus native application GPIO export map
+
+compatible: "rtbus,native-gpio"
+
+child-binding:
+  description: GPIO exported to native applications
+
+  properties:
+    rtbus,pin:
+      type: int
+      required: true
+      description: Native application pin number.
+
+    gpios:
+      type: phandle-array
+      required: true
+      description: GPIO controlled by this native application pin.

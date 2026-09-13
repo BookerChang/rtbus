@@ -4,23 +4,61 @@
 
 #include <runtime_api.h>
 
-extern "C" void __attribute__((weak)) runtime_arduino_serial_begin(unsigned long baud) {
-    (void)baud;
-}
-
-extern "C" void __attribute__((weak)) runtime_arduino_serial_end(void) {
-}
-
-extern "C" size_t __attribute__((weak)) runtime_arduino_serial_write(const uint8_t *data,
-                                                                       size_t size) {
+extern "C" size_t __attribute__((weak)) runtime_arduino_serial_write(uint32_t port,
+                                                                     const uint8_t *data,
+                                                                     size_t size) {
     if (data == nullptr || size == 0) {
         return 0;
     }
 
-    return rtbus_serial_write(data, size);
+    return rtbus_serial_write(port, data, size);
 }
 
-HardwareSerial Serial;
+extern "C" int __attribute__((weak)) runtime_arduino_serial_begin(uint32_t port,
+                                                                  uint32_t baud) {
+    return runtime_serial_begin(port, baud);
+}
+
+extern "C" size_t __attribute__((weak)) runtime_arduino_serial_read(uint32_t port,
+                                                                    uint8_t *data,
+                                                                    size_t size) {
+    size_t received = 0;
+
+    if (data == nullptr || size == 0) {
+        return 0;
+    }
+
+    while (received < size) {
+        int32_t value = rtbus_serial_read(port);
+
+        if (value < 0) {
+            break;
+        }
+
+        data[received++] = static_cast<uint8_t>(value);
+    }
+
+    return received;
+}
+
+HardwareSerial Serial(HardwareSerial::PortSerial);
+HardwareSerial Serial1(HardwareSerial::PortSerial1);
+
+struct SerialInstance {
+    uint32_t port;
+    int peeked;
+};
+
+static SerialInstance serial_instances[] = {
+    [HardwareSerial::PortSerial] = {
+        .port = RTBUS_SERIAL_PORT_0,
+        .peeked = -1,
+    },
+    [HardwareSerial::PortSerial1] = {
+        .port = RTBUS_SERIAL_PORT_1,
+        .peeked = -1,
+    },
+};
 
 static size_t string_length(const char *text) {
     size_t length = 0;
@@ -54,23 +92,81 @@ static size_t serial_print_unsigned(HardwareSerial *serial, unsigned long value)
 }
 
 void HardwareSerial::begin(unsigned long baud) {
-    runtime_arduino_serial_begin(baud);
+    SerialInstance *instance = &serial_instances[static_cast<size_t>(port_)];
+
+    (void)runtime_arduino_serial_begin(instance->port,
+                                       static_cast<uint32_t>(baud));
 }
 
 void HardwareSerial::end(void) {
-    runtime_arduino_serial_end();
 }
 
 int HardwareSerial::available(void) {
-    return 0;
+    uint8_t byte;
+    SerialInstance *instance = &serial_instances[static_cast<size_t>(port_)];
+
+    if (instance->peeked >= 0) {
+        return 1;
+    }
+
+    if (runtime_arduino_serial_read(instance->port, &byte, 1) == 0) {
+        return 0;
+    }
+
+    instance->peeked = byte;
+    return 1;
 }
 
 int HardwareSerial::peek(void) {
-    return -1;
+    if (available() == 0) {
+        return -1;
+    }
+
+    SerialInstance *instance = &serial_instances[static_cast<size_t>(port_)];
+
+    return instance->peeked;
 }
 
 int HardwareSerial::read(void) {
-    return -1;
+    uint8_t byte;
+    SerialInstance *instance = &serial_instances[static_cast<size_t>(port_)];
+
+    if (instance->peeked >= 0) {
+        int value = instance->peeked;
+
+        instance->peeked = -1;
+        return value;
+    }
+
+    if (runtime_arduino_serial_read(instance->port, &byte, 1) == 0) {
+        return -1;
+    }
+
+    return byte;
+}
+
+size_t HardwareSerial::readBytes(char *buffer, size_t length) {
+    return readBytes(reinterpret_cast<uint8_t *>(buffer), length);
+}
+
+size_t HardwareSerial::readBytes(uint8_t *buffer, size_t length) {
+    size_t received = 0;
+
+    if (buffer == nullptr || length == 0) {
+        return 0;
+    }
+
+    while (received < length) {
+        int value = read();
+
+        if (value < 0) {
+            break;
+        }
+
+        buffer[received++] = static_cast<uint8_t>(value);
+    }
+
+    return received;
 }
 
 void HardwareSerial::flush(void) {
@@ -81,15 +177,18 @@ size_t HardwareSerial::write(uint8_t value) {
 }
 
 size_t HardwareSerial::write(const uint8_t *buffer, size_t size) {
+    SerialInstance *instance = &serial_instances[static_cast<size_t>(port_)];
+
     if (buffer == nullptr || size == 0) {
         return 0;
     }
 
-    return runtime_arduino_serial_write(buffer, size);
+    return runtime_arduino_serial_write(instance->port, buffer, size);
 }
 
 size_t HardwareSerial::printf(const char *fmt, ...) {
     va_list args;
+    SerialInstance *instance = &serial_instances[static_cast<size_t>(port_)];
     size_t written = 0;
 
     if (fmt == nullptr) {
@@ -97,7 +196,7 @@ size_t HardwareSerial::printf(const char *fmt, ...) {
     }
 
     va_start(args, fmt);
-    written = rtbus_serial_vprintf(fmt, args);
+    written = rtbus_serial_vprintf(instance->port, fmt, args);
     va_end(args);
 
     return written;

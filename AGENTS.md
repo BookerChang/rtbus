@@ -125,6 +125,9 @@ make board.profile BOARD_PROFILE=rak4631
 - Prefer existing Makefile targets and board profile patterns over adding new
   build flows.
 - Do not edit generated build output unless explicitly requested.
+- Do not stage changes or update the git index. Leave all edits in the working
+  tree unless the user explicitly asks to run `git add` or otherwise change
+  staged state.
 - Treat upstream or vendored trees such as `zephyr/`, `modules/`, and MCUboot
   code as higher risk; keep changes there minimal and justified.
 - Preserve the public package identity `rtbus:rtduo`.
@@ -140,6 +143,10 @@ make board.profile BOARD_PROFILE=rak4631
   unless there is a concrete need.
 
 ## Verification
+
+Do not run build, compile, flash, or other verification commands unless the user
+explicitly asks for them. When verification is not run, report that clearly in
+the final response.
 
 Use the existing board profile build targets. The usual smoke test for runtime
 changes is:

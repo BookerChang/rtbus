@@ -8,11 +8,14 @@
 		zephyr,sram = &sram0;
 		zephyr,flash = &flash0;
 		rtbus,application-serial = &usart2;
+		rtbus,application-serial1 = &usart1;
 		zephyr,code-partition = &slot0_partition;
 		zephyr,settings-partition = &storage_partition;
 	};
 
 	rtbus_native_gpio: rtbus-native-gpio {
+		compatible = "rtbus,native-gpio";
+
 		/*
 		 * Application GPIO export map.
 		 *
@@ -20,11 +23,33 @@
 		 * be listed here. Leaving this empty avoids exposing runtime,
 		 * peripheral, wake, and low-power pins as raw GPIO ABI.
 		 */
+
+		io0 {
+			rtbus,pin = <0>;
+			gpios = <&gpioa 0 GPIO_ACTIVE_HIGH>;
+		};
+
+		io1 {
+			rtbus,pin = <1>;
+			gpios = <&gpioa 1 GPIO_ACTIVE_HIGH>;
+		};
+
+		io21 {
+			rtbus,pin = <21>;
+			gpios = <&gpiob 5 GPIO_ACTIVE_HIGH>;
+		};
 	};
 };
 
 &clk_hse {
 	hse-tcxo;
+};
+
+&usart1 {
+	pinctrl-0 = <&usart1_tx_pb6 &usart1_rx_pb7>;
+	pinctrl-names = "default";
+	current-speed = <115200>;
+	status = "okay";
 };
 
 &flash0 {

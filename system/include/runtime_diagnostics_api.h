@@ -23,7 +23,7 @@ static inline int runtime_diagnostics_add(int32_t lhs, int32_t rhs)
     req.lhs = lhs;
     req.rhs = rhs;
 
-    return rtbus_post_wait_result(APPLICATION_TASK_DIAGNOSTICS,
+    return rtbus_post_wait_result(RTBUS_TASK_DIAGNOSTICS,
                                   APPLICATION_DIAGNOSTICS_ADD,
                                   &req,
                                   APPLICATION_DIAGNOSTICS_ADD_PAYLOAD_SIZE,

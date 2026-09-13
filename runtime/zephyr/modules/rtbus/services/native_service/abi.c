@@ -33,4 +33,8 @@ static void native_api_table_install(void)
         (uintptr_t)native_api_on_event;
     api_table[RTBUS_API_SLOT_SERIAL_VPRINTF] =
         (uintptr_t)native_api_serial_vprintf;
+    api_table[RTBUS_API_SLOT_SERIAL_READ] =
+        (uintptr_t)native_api_serial_read;
+    api_table[RTBUS_API_SLOT_MILLIS] =
+        (uintptr_t)native_api_millis;
 }

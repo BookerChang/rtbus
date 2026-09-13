@@ -4,20 +4,17 @@
 
 #include <runtime_api.h>
 
-extern "C" void __attribute__((weak)) runtime_arduino_serial_begin(unsigned long baud) {
-    (void)baud;
-}
-
-extern "C" void __attribute__((weak)) runtime_arduino_serial_end(void) {
-}
-
 extern "C" size_t __attribute__((weak)) runtime_arduino_serial_write(const uint8_t *data,
-                                                                       size_t size) {
+                                                                     size_t size) {
     if (data == nullptr || size == 0) {
         return 0;
     }
 
-    return rtbus_serial_write(data, size);
+    return rtbus_serial_write(RTBUS_SERIAL_PORT_0, data, size);
+}
+
+extern "C" int __attribute__((weak)) runtime_arduino_serial_begin(uint32_t baud) {
+    return runtime_serial_begin(RTBUS_SERIAL_PORT_0, baud);
 }
 
 HardwareSerial Serial;
@@ -54,11 +51,10 @@ static size_t serial_print_unsigned(HardwareSerial *serial, unsigned long value)
 }
 
 void HardwareSerial::begin(unsigned long baud) {
-    runtime_arduino_serial_begin(baud);
+    (void)runtime_arduino_serial_begin(static_cast<uint32_t>(baud));
 }
 
 void HardwareSerial::end(void) {
-    runtime_arduino_serial_end();
 }
 
 int HardwareSerial::available(void) {
@@ -71,6 +67,30 @@ int HardwareSerial::peek(void) {
 
 int HardwareSerial::read(void) {
     return -1;
+}
+
+size_t HardwareSerial::readBytes(char *buffer, size_t length) {
+    return readBytes(reinterpret_cast<uint8_t *>(buffer), length);
+}
+
+size_t HardwareSerial::readBytes(uint8_t *buffer, size_t length) {
+    size_t received = 0;
+
+    if (buffer == nullptr || length == 0) {
+        return 0;
+    }
+
+    while (received < length) {
+        int value = read();
+
+        if (value < 0) {
+            break;
+        }
+
+        buffer[received++] = static_cast<uint8_t>(value);
+    }
+
+    return received;
 }
 
 void HardwareSerial::flush(void) {
@@ -97,7 +117,7 @@ size_t HardwareSerial::printf(const char *fmt, ...) {
     }
 
     va_start(args, fmt);
-    written = rtbus_serial_vprintf(fmt, args);
+    written = rtbus_serial_vprintf(RTBUS_SERIAL_PORT_0, fmt, args);
     va_end(args);
 
     return written;

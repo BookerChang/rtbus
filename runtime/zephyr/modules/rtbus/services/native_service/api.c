@@ -4,6 +4,11 @@
 
 #include "native_board.h"
 
+#include <zephyr/device.h>
+#include <zephyr/drivers/uart.h>
+
+#include <rtbus/runtime_serial.h>
+
 #if !DT_HAS_CHOSEN(rtbus_application_serial)
 #error "rtbus,application-serial is required by native Serial API"
 #endif
@@ -12,6 +17,13 @@
 
 static const struct device *const native_serial_dev =
     DEVICE_DT_GET(NATIVE_SERIAL_NODE);
+
+#if DT_HAS_CHOSEN(rtbus_application_serial1)
+#define NATIVE_SERIAL1_NODE DT_CHOSEN(rtbus_application_serial1)
+
+static const struct device *const native_serial1_dev =
+    DEVICE_DT_GET(NATIVE_SERIAL1_NODE);
+#endif
 
 static int native_api_rtbus_post(uint8_t task_id, uint32_t ctx_id,
                                  const void *payload, uint32_t payload_len)
@@ -103,22 +115,30 @@ static int32_t native_api_k_delay(uint32_t delay_ms)
     return 0;
 }
 
+static uint32_t native_api_millis(void)
+{
+    return k_uptime_get_32();
+}
+
 static int native_gpio_resolve(uint32_t pin,
                                const struct gpio_dt_spec **entry)
 {
     size_t count;
-    const struct gpio_dt_spec *pins = native_board_gpio_pins(&count);
+    const struct native_board_gpio_pin *pins =
+        native_board_gpio_pins(&count);
 
-    if (pin >= count) {
-        return -EINVAL;
+    for (size_t i = 0U; i < count; i++) {
+        if (pins[i].app_pin == pin) {
+            *entry = &pins[i].gpio;
+            if (!gpio_is_ready_dt(*entry)) {
+                return -ENODEV;
+            }
+
+            return 0;
+        }
     }
 
-    *entry = &pins[pin];
-    if (!gpio_is_ready_dt(*entry)) {
-        return -ENODEV;
-    }
-
-    return 0;
+    return -EINVAL;
 }
 
 static int native_api_gpio_configure(uint32_t pin, uint32_t mode)
@@ -187,8 +207,24 @@ static void native_api_rtt_vprintf(const char *fmt, va_list args)
     vprintk(fmt, args);
 }
 
-static size_t native_api_serial_write(const uint8_t *data, size_t size)
+static const struct device *native_api_serial_device(uint32_t port)
 {
+    switch (port) {
+    case RTBUS_SERIAL_PORT_0:
+        return native_serial_dev;
+#if DT_HAS_CHOSEN(rtbus_application_serial1)
+    case RTBUS_SERIAL_PORT_1:
+        return native_serial1_dev;
+#endif
+    default:
+        return NULL;
+    }
+}
+
+static size_t native_api_serial_write(uint32_t port, const uint8_t *data,
+                                      size_t size)
+{
+    const struct device *serial_dev = native_api_serial_device(port);
     size_t written = 0U;
 
     if (data == NULL || size == 0U ||
@@ -196,7 +232,11 @@ static size_t native_api_serial_write(const uint8_t *data, size_t size)
         return 0U;
     }
 
-    if (!device_is_ready(native_serial_dev)) {
+    if (serial_dev == NULL) {
+        return 0U;
+    }
+
+    if (!device_is_ready(serial_dev)) {
         return 0U;
     }
 
@@ -207,7 +247,7 @@ static size_t native_api_serial_write(const uint8_t *data, size_t size)
     atomic_inc(&native_api_busy);
 
     for (size_t i = 0U; i < size; i++) {
-        uart_poll_out(native_serial_dev, data[i]);
+        uart_poll_out(serial_dev, data[i]);
         written++;
     }
 
@@ -215,7 +255,8 @@ static size_t native_api_serial_write(const uint8_t *data, size_t size)
     return written;
 }
 
-static size_t native_api_serial_vprintf(const char *fmt, va_list args)
+static size_t native_api_serial_vprintf(uint32_t port, const char *fmt,
+                                        va_list args)
 {
     char buffer[160];
     int length;
@@ -240,7 +281,23 @@ static size_t native_api_serial_vprintf(const char *fmt, va_list args)
         length = sizeof(buffer) - 1;
     }
 
-    return native_api_serial_write((const uint8_t *)buffer, (size_t)length);
+    return native_api_serial_write(port, (const uint8_t *)buffer,
+                                   (size_t)length);
+}
+
+static int32_t native_api_serial_read(uint32_t port)
+{
+    uint8_t byte;
+
+    if (atomic_get(&native_console_suppressed) != 0) {
+        return -1;
+    }
+
+    if (rtbus_runtime_serial_read(port, &byte, 1U) == 0U) {
+        return -1;
+    }
+
+    return (int32_t)byte;
 }
 
 /* Strong override for mod_rtbus's weak async-post hook. */

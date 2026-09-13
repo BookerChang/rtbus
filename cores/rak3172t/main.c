@@ -12,7 +12,7 @@ void delay(unsigned long ms)
 
 unsigned long millis(void)
 {
-    return 0;
+    return (unsigned long)rtbus_millis();
 }
 
 int main(void)

@@ -24,18 +24,19 @@ if(nordic_hv_regout0_3v3_config AND BOARD MATCHES "^(rak4631|.*nrf52840.*)")
     )
 endif()
 
+list(APPEND DTS_ROOT
+    "${CMAKE_CURRENT_SOURCE_DIR}/../modules/rtbus"
+)
+
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(rtbus_runtime)
 
 add_subdirectory(../modules/rtbus rtbus)
 
-zephyr_linker_sources(SECTIONS
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/sections.ld
-)
-
 target_sources(app PRIVATE
     src/main.c
     src/services/startup_service.c
+    src/services/rtbus_serial.c
 )
 
 target_sources_ifdef(CONFIG_NORDIC_HV_REGOUT0_3V3 app PRIVATE

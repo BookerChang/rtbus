@@ -17,6 +17,8 @@ public:
     int available(void);
     int peek(void);
     int read(void);
+    size_t readBytes(char *buffer, size_t length);
+    size_t readBytes(uint8_t *buffer, size_t length);
     void flush(void);
 
     size_t write(uint8_t value);
