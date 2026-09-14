@@ -9,8 +9,8 @@
  * PAx = IOx, PBx = IO(16 + x), PCx = IO(32 + x).
  */
 
-#define IO0  0U  //BSP PA0
-#define IO1  1U  //BSP PA1
+#define IO0  0U
+#define IO1  1U
 #define IO2  2U
 #define IO3  3U
 #define IO4  4U
@@ -57,3 +57,6 @@
 #define IO45 45U
 #define IO46 46U
 #define IO47 47U
+
+#define LED0 48U //GREEN LED
+#define LED1 49U //BLUE LED

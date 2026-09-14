@@ -288,7 +288,7 @@ static int rtbus_runtime_serial_configure(
     }
 
     if (ret == -ENOSYS || ret == -ENOTSUP) {
-        return 0;
+        return serial_port->is_cdc ? 0 : ret;
     }
 
     return ret;
@@ -337,6 +337,19 @@ int rtbus_runtime_serial_flush_rx(uint32_t port)
     return 0;
 }
 
+static bool rtbus_runtime_serial_tx_ready(
+    const struct rtbus_runtime_serial_port *serial_port)
+{
+    uint32_t dtr = 0U;
+
+    if (!serial_port->is_cdc) {
+        return true;
+    }
+
+    return uart_line_ctrl_get(serial_port->dev, UART_LINE_CTRL_DTR, &dtr) == 0 &&
+           dtr != 0U;
+}
+
 size_t rtbus_runtime_serial_write(uint32_t port, const uint8_t *data,
                                   size_t size)
 {
@@ -350,6 +363,10 @@ size_t rtbus_runtime_serial_write(uint32_t port, const uint8_t *data,
     }
 
     if (!device_is_ready(serial_port->dev)) {
+        return 0U;
+    }
+
+    if (!rtbus_runtime_serial_tx_ready(serial_port)) {
         return 0U;
     }
 

@@ -64,7 +64,7 @@ recipe.c.o.pattern="{compiler.path}{compiler.c.cmd}" {compiler.c.flags} {compile
 recipe.cpp.o.pattern="{compiler.path}{compiler.cpp.cmd}" {compiler.cpp.flags} {compiler.warning_flags} -DF_CPU={build.f_cpu} -DARDUINO=10819 -DARDUINO_{build.board} -DARDUINO_ARCH_{build.arch} {build.extra_flags} {build.abi.includes} {includes} "{source_file}" -o "{object_file}"
 recipe.S.o.pattern="{compiler.path}{compiler.c.cmd}" {compiler.S.flags} {compiler.warning_flags} -DF_CPU={build.f_cpu} -DARDUINO=10819 -DARDUINO_{build.board} -DARDUINO_ARCH_{build.arch} {build.extra_flags} {build.abi.includes} {includes} "{source_file}" -o "{object_file}"
 recipe.ar.pattern="{compiler.path}{compiler.ar.cmd}" {compiler.ar.flags} "{archive_file_path}" "{object_file}"
-recipe.c.combine.pattern="{compiler.path}{compiler.cpp.cmd}" {compiler.common.flags} -nostdlib -Wl,--gc-sections -Wl,-Map,{build.path}/{build.project_name}.map -T{build.core.path}/linker.ld -o "{build.path}/{build.project_name}.elf" -Wl,--start-group {object_files} "{archive_file_path}" -Wl,--end-group
+recipe.c.combine.pattern="{compiler.path}{compiler.cpp.cmd}" {compiler.common.flags} -nostdlib -Wl,--gc-sections -Wl,-Map,{build.path}/{build.project_name}.map -T{build.core.path}/linker.ld -o "{build.path}/{build.project_name}.elf" -Wl,--start-group {object_files} "{archive_file_path}" -lgcc -Wl,--end-group
 recipe.objcopy.hex.pattern="{compiler.path}{compiler.objcopy.cmd}" -O ihex "{build.path}/{build.project_name}.elf" "{build.path}/{build.project_name}.hex"
 recipe.objcopy.bin.pattern="{compiler.path}{compiler.objcopy.cmd}" -O binary "{build.path}/{build.project_name}.elf" "{build.path}/{build.project_name}.bin"
 recipe.size.pattern="{compiler.path}{compiler.size.cmd}" -A "{build.path}/{build.project_name}.elf"

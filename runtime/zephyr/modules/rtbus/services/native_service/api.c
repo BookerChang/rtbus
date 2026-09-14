@@ -221,6 +221,33 @@ static const struct device *native_api_serial_device(uint32_t port)
     }
 }
 
+static bool native_api_serial_is_cdc(uint32_t port)
+{
+    switch (port) {
+    case RTBUS_SERIAL_PORT_0:
+        return DT_NODE_HAS_COMPAT(NATIVE_SERIAL_NODE, zephyr_cdc_acm_uart);
+#if DT_HAS_CHOSEN(rtbus_application_serial1)
+    case RTBUS_SERIAL_PORT_1:
+        return DT_NODE_HAS_COMPAT(NATIVE_SERIAL1_NODE, zephyr_cdc_acm_uart);
+#endif
+    default:
+        return false;
+    }
+}
+
+static bool native_api_serial_tx_ready(uint32_t port,
+                                       const struct device *serial_dev)
+{
+    uint32_t dtr = 0U;
+
+    if (!native_api_serial_is_cdc(port)) {
+        return true;
+    }
+
+    return uart_line_ctrl_get(serial_dev, UART_LINE_CTRL_DTR, &dtr) == 0 &&
+           dtr != 0U;
+}
+
 static size_t native_api_serial_write(uint32_t port, const uint8_t *data,
                                       size_t size)
 {
@@ -237,6 +264,10 @@ static size_t native_api_serial_write(uint32_t port, const uint8_t *data,
     }
 
     if (!device_is_ready(serial_dev)) {
+        return 0U;
+    }
+
+    if (!native_api_serial_tx_ready(port, serial_dev)) {
         return 0U;
     }
 

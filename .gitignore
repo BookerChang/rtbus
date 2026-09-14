@@ -20,3 +20,4 @@ zephyr-share/
 *.a
 *.d
 TODO.md
+project.*

@@ -97,6 +97,29 @@ make bootloader BOARD_PROFILE=rak4631
 make application BOARD_PROFILE=rak4631
 ```
 
+## Application DFU
+
+The runtime CLI starts native application upgrades with:
+
+```text
+@RTBUS:DFU=APP
+```
+
+Use `application.signed.bin` as the payload for this flow. A typical sequence is:
+
+1. Build or select a signed native application image.
+2. Open the runtime serial port at the board upload baud rate.
+3. Send the CLI line `@RTBUS:DFU=APP` followed by CR/LF.
+4. Wait for the runtime to enter YMODEM receive mode. The receiver sends `C`
+   while waiting for the first YMODEM packet.
+5. Send `application.signed.bin` with YMODEM.
+6. Wait for the final runtime status before closing the serial port.
+
+When the CLI command is accepted, the runtime suppresses native application
+console output, stops the native service for the upgrade handoff, receives the
+image through YMODEM on runtime serial port 0, then resumes the native service
+after the image store finishes.
+
 ## Package Layout
 
 The Makefile stages this repository as a local Arduino package at:

@@ -24,18 +24,18 @@
 		 * peripheral, wake, and low-power pins as raw GPIO ABI.
 		 */
 
-		io0 {
-			rtbus,pin = <0>;
+		led0 {
+			rtbus,pin = <48>;
 			gpios = <&gpioa 0 GPIO_ACTIVE_HIGH>;
+		};
+
+		led1 {
+			rtbus,pin = <49>;
+			gpios = <&gpioa 1 GPIO_ACTIVE_HIGH>;
 		};
 
 		io1 {
 			rtbus,pin = <1>;
-			gpios = <&gpioa 1 GPIO_ACTIVE_HIGH>;
-		};
-
-		io21 {
-			rtbus,pin = <21>;
 			gpios = <&gpiob 5 GPIO_ACTIVE_HIGH>;
 		};
 	};
