@@ -47,14 +47,14 @@ make docker.shell
 ```bash
 make arduino.version
 make arduino.boards
-make arduino.compile BOARD_PROFILE=rak4631
+make application BOARD_PROFILE=rak4631
 ```
 
 To compile another sketch:
 
 ```bash
-make arduino.compile \
-  BOARD_PROFILE=rak3172f \
+make application \
+  BOARD_PROFILE=rak3172p \
   ARDUINO_SKETCH=libraries/RTDuo/examples/arduino
 ```
 

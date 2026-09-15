@@ -38,6 +38,11 @@
 			rtbus,pin = <2>;
 			gpios = <&gpio1 2 GPIO_ACTIVE_HIGH>;
 		};
+
+		ain1 {
+			rtbus,pin = <20>;
+			gpios = <&gpio0 31 GPIO_ACTIVE_HIGH>;
+		};
     };
 };
 
@@ -155,13 +160,7 @@
 		storage_partition: partition@F8000 {
 			compatible = "zephyr,mapped-partition";
 			label = "storage";
-			reg = <0x000F8000 0x00004000>; /* 16 KB */
-		};
-
-		my_at_storage: partition@FC000 {
-			compatible = "fixed-partition";
-			label = "at_storage";
-			reg = <0x000FC000 0x00004000>; /* 16 KB */
+			reg = <0x000F8000 0x00008000>; /* 32 KB */
 		};
 	};
 };

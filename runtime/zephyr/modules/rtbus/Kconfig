@@ -60,6 +60,24 @@ config RTBUS_RUNTIME_TIMEOUT_MAX_MS
       Maximum timeout passed to the RTBus runtime event wait. This is also used
       when RTBus has no pending delayed event.
 
+config RTBUS_RUNTIME_THREAD_STACK_SIZE
+    int "RTBus runtime thread stack size"
+    default 1024
+    range 512 8192
+    depends on RTBUS_NATIVE_SERVICE
+    help
+      Stack size for the Zephyr thread that initializes RTBus and runs the
+      rtbus_process() loop. Increase this on profiles whose RTBus tasks call
+      stack-heavy subsystems such as Bluetooth settings loading.
+
+config RTBUS_RUNTIME_THREAD_PRIORITY
+    int "RTBus runtime thread priority"
+    default 9
+    range 0 15
+    depends on RTBUS_NATIVE_SERVICE
+    help
+      Preemptive Zephyr priority used by the RTBus runtime thread.
+
 config RTBUS_IMAGE_RAM_MAX
     int "Maximum runtime RAM declared by an RTBus image"
     default 8192

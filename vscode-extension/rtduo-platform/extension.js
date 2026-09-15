@@ -89,9 +89,9 @@ async function compileArduinoExample() {
   }
 
   output.show(true);
-  log(`Compiling RTDuo Arduino example: ${board}`);
-  await runMake(root, ['arduino.compile', `BOARD_PROFILE=${board}`]);
-  log(`[OK] Arduino example compile complete: ${board}`);
+  log(`Building RTDuo application: ${board}`);
+  await runMake(root, ['application', `BOARD_PROFILE=${board}`]);
+  log(`[OK] Application build complete: ${board}`);
 }
 
 async function openBuilderShell() {

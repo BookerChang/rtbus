@@ -11,10 +11,15 @@ ARDUINO_BUILD_ROOT ?= build.arduino
 BOOTLOADER ?= bootloader
 BOOTLOADER_APP_DIR ?= bootloader
 RUNTIME_APP_DIR ?= runtime/zephyr/runtime
-APPLICATION_APP_DIR ?= runtime/zephyr/application
 ZEPHYR_BUILD_ROOT ?= build.zephyr
 ZEPHYR_BUILD_TMP_ROOT ?= build.zephyr.tmp
 ZEPHYR_SHARE_ROOT ?= zephyr-share
+APPLICATION_BACKEND ?= arduino
+APPLICATION_GCC_MAKEFILE ?= application.mk
+APPLICATION_SOURCE ?= cores/$(BOARD_PROFILE)/main.c
+APPLICATION_GCC_PATH ?= /opt/toolchains/zephyr-sdk-$(ZEPHYR_SDK_VERSION)/gnu/arm-zephyr-eabi/bin
+APPLICATION_VERSION ?= 0.1.0
+APPLICATION_BUILD ?= 0
 
 BOARD_PROFILE ?=
 ARDUINO_BOARD_ID_rak4631 := RAK4631
@@ -63,10 +68,13 @@ BOARD_ROOTS_DOCKER = $(foreach root,$(BOARD_ROOTS),$(DOCKER_WORK)/$(root))
 BOARD_ROOT_CMAKE = $(subst $(SPACE),;,$(strip $(BOARD_ROOTS_DOCKER)))
 BOARD_ROOT_ARG = $(if $(strip $(BOARD_ROOTS)),-DBOARD_ROOT="$(BOARD_ROOT_CMAKE)",)
 docker_path = $(if $(filter /%,$(1)),$(1),$(DOCKER_WORK)/$(1))
+APPLICATION_BUILD_DIR ?= $(ZEPHYR_BUILD_ROOT)/application/$(BOARD_PROFILE)
+APPLICATION_BUILD_TMP_DIR ?= $(ZEPHYR_BUILD_TMP_ROOT)/application/$(BOARD_PROFILE)
+APPLICATION_BUILD_DIR_DOCKER = $(call docker_path,$(APPLICATION_BUILD_DIR))
+APPLICATION_BUILD_TMP_DIR_DOCKER = $(call docker_path,$(APPLICATION_BUILD_TMP_DIR))
 
 include runtime/zephyr/runtime/runtime.mk
 include runtime/zephyr/bootloader.mk
-include runtime/zephyr/application/application.mk
 
 DOCKER_RUN = $(VM) run --rm -v $(CURDIR):$(DOCKER_WORK) -w $(DOCKER_WORK) $(DOCKER_IMAGE)
 ARDUINO_LOCAL_BUILD_PROPERTIES = \
@@ -105,7 +113,8 @@ board.profile:
 	@printf 'BOOTLOADER_BOARD_DIR=%s\n' '$(BOOTLOADER_BOARD_DIR)'
 	@printf 'BOARD_BOOTLOADER_CONF=%s\n' '$(BOARD_BOOTLOADER_CONF)'
 	@printf 'BOARD_BOOTLOADER_OVERLAY=%s\n' '$(BOARD_BOOTLOADER_OVERLAY)'
-	@printf 'APPLICATION_APP_DIR=%s\n' '$(APPLICATION_APP_DIR)'
+	@printf 'APPLICATION_BACKEND=%s\n' '$(APPLICATION_BACKEND)'
+	@printf 'APPLICATION_SOURCE=%s\n' '$(APPLICATION_SOURCE)'
 	@printf 'APPLICATION_BUILD_DIR=%s\n' '$(APPLICATION_BUILD_DIR)'
 
 .PHONY: jflash_erase
@@ -132,7 +141,7 @@ jflash_write.runtime:
 .PHONY: jflash_write.application
 jflash_write.application:
 	$(JLINK_CMD).device $(JLINK_TARGET)
-	@test -f "$(APPLICATION_FLASH_DIR)/$(APPLICATION_FLASH_HEX)" || { echo "Missing $(APPLICATION_FLASH_DIR)/$(APPLICATION_FLASH_HEX). Rebuild with arduino.compile or application for BOARD_PROFILE=$(BOARD_PROFILE)." >&2; exit 1; }
+	@test -f "$(APPLICATION_FLASH_DIR)/$(APPLICATION_FLASH_HEX)" || { echo "Missing $(APPLICATION_FLASH_DIR)/$(APPLICATION_FLASH_HEX). Rebuild with application for BOARD_PROFILE=$(BOARD_PROFILE)." >&2; exit 1; }
 	cd $(APPLICATION_FLASH_DIR) && $(JLINK_CMD).write $(APPLICATION_FLASH_HEX)
 	@echo "current time: $$(date +'%Y-%m-%d %H:%M:%S')"
 
@@ -150,8 +159,11 @@ arduino.package.local:
 arduino.boards: builder.image arduino.package.local
 	$(DOCKER_RUN) arduino-cli --config-file $(ARDUINO_CONFIG) board listall rtduo
 
-.PHONY: arduino.compile
-arduino.compile: builder.image arduino.package.local
+.PHONY: application
+application: application.$(APPLICATION_BACKEND)
+
+.PHONY: application.arduino
+application.arduino: builder.image arduino.package.local
 	@test -n "$(ARDUINO_BOARD_ID)" || { echo "Unsupported BOARD_PROFILE=$(BOARD_PROFILE)" >&2; exit 1; }
 	$(DOCKER_RUN) arduino-cli --config-file $(ARDUINO_CONFIG) compile \
 		--verbose \
@@ -160,6 +172,34 @@ arduino.compile: builder.image arduino.package.local
 		$(ARDUINO_LOCAL_BUILD_PROPERTIES) \
 		--build-property build.application.pack=true \
 		$(DOCKER_WORK)/$(ARDUINO_SKETCH)
+
+.PHONY: application.gcc
+application.gcc: builder.image
+	$(DOCKER_RUN) sh -ec 'rm -rf "$(APPLICATION_BUILD_TMP_DIR_DOCKER)"; $(MAKE) -f "$(DOCKER_WORK)/$(APPLICATION_GCC_MAKEFILE)" \
+		BOARD_PROFILE=$(BOARD_PROFILE) \
+		BUILD_DIR="$(APPLICATION_BUILD_TMP_DIR_DOCKER)" \
+		SRC="$(DOCKER_WORK)/$(APPLICATION_SOURCE)" \
+		APPLICATION_VERSION="$(APPLICATION_VERSION)" \
+		APPLICATION_BUILD="$(APPLICATION_BUILD)" \
+		GCC_PATH="$(APPLICATION_GCC_PATH)"; rm -rf "$(APPLICATION_BUILD_DIR_DOCKER)"; mkdir -p "$$(dirname "$(APPLICATION_BUILD_DIR_DOCKER)")"; cp -a "$(APPLICATION_BUILD_TMP_DIR_DOCKER)" "$(APPLICATION_BUILD_DIR_DOCKER)"'
+
+.PHONY: application.clean
+application.clean: application.$(APPLICATION_BACKEND).clean
+
+.PHONY: application.arduino.clean
+application.arduino.clean:
+	rm -rf $(ARDUINO_APPLICATION_BUILD_DIR)
+
+.PHONY: application.gcc.clean
+application.gcc.clean:
+	$(MAKE) -f $(APPLICATION_GCC_MAKEFILE) \
+		BOARD_PROFILE=$(BOARD_PROFILE) \
+		BUILD_DIR=$(abspath $(APPLICATION_BUILD_DIR)) \
+		clean
+
+application.%:
+	@echo "Unsupported APPLICATION_BACKEND=$*. Use one of: arduino gcc" >&2
+	@exit 1
 
 .PHONY: arduino.clean
 arduino.clean:

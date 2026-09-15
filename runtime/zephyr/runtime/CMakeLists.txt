@@ -39,6 +39,10 @@ target_sources(app PRIVATE
     src/services/rtbus_serial.c
 )
 
+target_sources_ifdef(CONFIG_RTBUS_RUNTIME_BLE app PRIVATE
+    src/services/rtbus_ble.c
+)
+
 target_sources_ifdef(CONFIG_NORDIC_HV_REGOUT0_3V3 app PRIVATE
     src/platform/nordic/nordic_hv_regout0_3v3.c
 )

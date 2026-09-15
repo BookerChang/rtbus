@@ -3,12 +3,12 @@ BOARD_PROFILE_PROMPT_GOALS := \
 	runtime \
 	bootloader \
 	application \
+	application.gcc \
 	application.clean \
 	jflash_erase \
 	jlink_rttlog \
 	jflash_write.runtime \
-	jflash_write.application \
-	arduino.compile
+	jflash_write.application
 
 BOARD_PROFILE_REQUESTED := $(filter $(BOARD_PROFILE_PROMPT_GOALS),$(MAKECMDGOALS))
 

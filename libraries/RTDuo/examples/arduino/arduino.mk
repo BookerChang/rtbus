@@ -6,7 +6,7 @@ ARDUINO_SKETCH := libraries/RTDuo/examples/arduino
 
 .PHONY: compile
 compile:
-	$(MAKE) -C $(REPO_ROOT) arduino.compile \
+	$(MAKE) -C $(REPO_ROOT) application \
 		BOARD_PROFILE=$(BOARD_PROFILE) \
 		ARDUINO_SKETCH=$(ARDUINO_SKETCH)
 

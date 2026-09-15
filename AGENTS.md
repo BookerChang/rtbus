@@ -69,7 +69,9 @@ future RTBus task event handling.
 - `runtime/zephyr/runtime/`: RTBus runtime firmware.
 - `runtime/zephyr/bootloader.mk`: MCUboot build wrapper.
 - `bootloader/mcuboot/`: west-provided MCUboot source.
-- `runtime/zephyr/application/`: standalone native C application build path.
+- `application.mk`: standalone native C application build path.
+- `cores/<profile>/main.c`: Arduino and standalone native application entry,
+  selected by the standard Arduino `ARDUINO` macro.
 - `bootloader/`, `zephyr/`, `modules/`: upstream or vendored platform pieces.
 - `build.arduino/`, `build.zephyr/`, `build.zephyr.tmp/`: generated build output.
 
@@ -102,7 +104,7 @@ make arduino.boards
 Compile the default Arduino sketch:
 
 ```sh
-make arduino.compile BOARD_PROFILE=rak4631
+make application BOARD_PROFILE=rak4631
 ```
 
 Build Zephyr runtime, bootloader, or native application:
@@ -128,6 +130,15 @@ make board.profile BOARD_PROFILE=rak4631
 - Do not stage changes or update the git index. Leave all edits in the working
   tree unless the user explicitly asks to run `git add` or otherwise change
   staged state.
+- Preserve the user's existing staged changes exactly. Do not add to, unstage,
+  refresh, replace, or otherwise mutate the staged snapshot unless the user
+  explicitly asks to change staged state.
+- Do not use git commands to change file content or to "fix" index/staged
+  state. In particular, do not run `git restore --staged`, `git reset`,
+  `git checkout --`, `git add`, `git commit`, or similar index/worktree
+  mutation commands unless the user explicitly requests that exact operation.
+  If staged state looks wrong or surprising, report it and wait for the user's
+  direction instead of correcting it automatically.
 - Treat upstream or vendored trees such as `zephyr/`, `modules/`, and MCUboot
   code as higher risk; keep changes there minimal and justified.
 - Preserve the public package identity `rtbus:rtduo`.

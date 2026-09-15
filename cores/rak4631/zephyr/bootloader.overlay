@@ -45,13 +45,7 @@
 		storage_partition: partition@F8000 {
 			compatible = "zephyr,mapped-partition";
 			label = "storage";
-			reg = <0x000F8000 0x00004000>;
-		};
-
-		my_at_storage: partition@FC000 {
-			compatible = "fixed-partition";
-			label = "at_storage";
-			reg = <0x000FC000 0x00004000>;
+			reg = <0x000F8000 0x00008000>;
 		};
 	};
 };

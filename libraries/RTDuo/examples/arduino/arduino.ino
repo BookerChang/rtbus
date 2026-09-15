@@ -20,7 +20,7 @@ static void onEvent(const struct runtime_event_tlv *event) {
 
   if (runtime_event_is_ble_connected(event, &ble_conn)) {
     Serial.println("arduino application: BLE connected");
-    (void)runtime_ble_set_security(ble_conn, 2);
+    (void)runtime_ble_pair(ble_conn);
   }
 
   if (runtime_event_is_ble_disconnected(event, &reason)) {

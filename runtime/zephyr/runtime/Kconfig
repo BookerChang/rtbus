@@ -38,4 +38,15 @@ config RUNTIME_POOL_SIZE
 
 rsource "../modules/rtbus/Kconfig"
 
+config RTBUS_RUNTIME_BLE
+	bool "Enable RTBus runtime BLE service"
+	depends on RTBUS_NATIVE_SERVICE
+	depends on BT
+	depends on BT_PERIPHERAL
+	default y
+	help
+	  Enable the runtime-owned BLE task used by native applications and
+	  Arduino sketches to start connectable BLE advertising and request
+	  Just Works pairing or security changes through rtbus post.
+
 source "Kconfig.zephyr"

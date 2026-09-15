@@ -1,28 +1,39 @@
 # SPDX-License-Identifier: MPL-2.0
 #
-# Standalone native application build path kept with the Zephyr apps.
-# This preserves the legacy native compile/link/pack flow while
-# Arduino CLI remains available for sketch-based setup()/loop() builds.
+# Native application GCC build path shared by RTDuo cores.
 
 BOARD_PROFILE ?= rak4631
 TARGET ?= application
 MODULE ?= application
 MODULE_NAME ?= application
 
-APPLICATION_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
-ZEPHYR_APPS_DIR := $(abspath $(APPLICATION_DIR)/..)
-REPO_ROOT := $(abspath $(ZEPHYR_APPS_DIR)/../..)
+APPLICATION_MAKEFILE_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
+REPO_ROOT := $(APPLICATION_MAKEFILE_DIR)
+CORES_DIR := $(REPO_ROOT)/cores
 SYSTEM_DIR := $(REPO_ROOT)/system
-PLATFORM_DIR := $(REPO_ROOT)
+PROFILE_DIR := $(CORES_DIR)/$(BOARD_PROFILE)
+PROFILE_MK := $(PROFILE_DIR)/profile.mk
+
+ifeq ($(wildcard $(PROFILE_MK)),)
+$(error Unsupported BOARD_PROFILE=$(BOARD_PROFILE))
+endif
+
+include $(PROFILE_MK)
 
 BUILD_DIR ?= $(REPO_ROOT)/build.rtbus.application.$(BOARD_PROFILE)
-SRC ?= $(APPLICATION_DIR)/main.c
+SRC ?= $(PROFILE_DIR)/main.c
 STARTUP_SRC ?= $(SYSTEM_DIR)/rtduo_startup.S
-LD_SCRIPT ?= $(APPLICATION_DIR)/boards/$(BOARD_PROFILE)/linker.ld
+CORE_SOURCES ?= $(PROFILE_DIR)/wiring_time.c
+LD_SCRIPT ?= $(PROFILE_DIR)/linker.ld
 ABI_INCLUDE ?= $(SYSTEM_DIR)/include
 PACK_SRC ?= $(SYSTEM_DIR)/header.c
 APPLICATION_VERSION ?= 0.1.0
 APPLICATION_BUILD ?= 0
+
+TARGET_MCU ?= $(APPLICATION_TARGET_MCU)
+ifeq ($(strip $(TARGET_MCU)),)
+$(error APPLICATION_TARGET_MCU is required by $(PROFILE_MK))
+endif
 
 PREFIX ?= arm-zephyr-eabi-
 ifdef GCC_PATH
@@ -37,7 +48,6 @@ CP := $(TOOLCHAIN_PREFIX)objcopy
 SZ := $(TOOLCHAIN_PREFIX)size
 HOST_CC ?= cc
 
-include $(APPLICATION_DIR)/boards/$(BOARD_PROFILE)/board.mk
 CPU ?= -mcpu=$(TARGET_MCU)
 FPU ?=
 FLOAT_ABI ?= -mabi=aapcs
@@ -55,7 +65,8 @@ LDFLAGS += -L $(REPO_ROOT)
 PACKER := $(BUILD_DIR)/$(TARGET)_pack
 OBJECT := $(BUILD_DIR)/$(TARGET).o
 STARTUP_OBJECT := $(BUILD_DIR)/startup.o
-OBJECTS := $(STARTUP_OBJECT) $(OBJECT)
+CORE_OBJECTS := $(patsubst $(PROFILE_DIR)/%.c,$(BUILD_DIR)/core_%.o,$(filter $(PROFILE_DIR)/%.c,$(CORE_SOURCES)))
+OBJECTS := $(STARTUP_OBJECT) $(OBJECT) $(CORE_OBJECTS)
 ELF := $(BUILD_DIR)/$(TARGET).elf
 MAP := $(BUILD_DIR)/$(TARGET).map
 BIN := $(BUILD_DIR)/$(TARGET).bin
@@ -81,6 +92,9 @@ $(OBJECT): $(SRC) | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(STARTUP_OBJECT): $(STARTUP_SRC) | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(BUILD_DIR)/core_%.o: $(PROFILE_DIR)/%.c | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(ELF): $(OBJECTS) $(LD_SCRIPT)

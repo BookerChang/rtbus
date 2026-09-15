@@ -19,6 +19,7 @@ extern "C" {
 #define APPLICATION_LORAWAN_SEND_PAYLOAD_MAX        24U
 #define APPLICATION_DIAGNOSTICS_ADD_PAYLOAD_SIZE    12U
 #define APPLICATION_RUNTIME_SERIAL_BEGIN_PAYLOAD_SIZE 12U
+#define APPLICATION_BLE_PAIR_PAYLOAD_SIZE           8U
 #define APPLICATION_BLE_SET_SECURITY_PAYLOAD_SIZE   12U
 #define RTBUS_CLI_LINE_MAX                          256U
 #define RTBUS_SERIAL_PORT_0                         0U
@@ -35,6 +36,7 @@ enum rtbus_task_id {
     RTBUS_TASK_DIAGNOSTICS = 0,
     RTBUS_TASK_CLI,
     RTBUS_TASK_RUNTIME_SERIAL,
+    RTBUS_TASK_RUNTIME_BLE,
 };
 
 enum rtbus_cli_eid {
@@ -52,6 +54,20 @@ enum application_runtime_serial_eid {
 
 #define APPLICATION_RUNTIME_SERIAL_BEGIN \
     APPLICATION_APP_EVT(APPLICATION_RUNTIME_SERIAL_EID_BEGIN)
+
+enum application_ble_eid {
+    APPLICATION_BLE_EID_NONE = 0,
+    APPLICATION_BLE_EID_ADV_START,
+    APPLICATION_BLE_EID_PAIR,
+    APPLICATION_BLE_EID_SET_SECURITY,
+};
+
+#define APPLICATION_BLE_ADV_START \
+    APPLICATION_APP_EVT(APPLICATION_BLE_EID_ADV_START)
+#define APPLICATION_BLE_PAIR \
+    APPLICATION_APP_EVT(APPLICATION_BLE_EID_PAIR)
+#define APPLICATION_BLE_SET_SECURITY \
+    APPLICATION_APP_EVT(APPLICATION_BLE_EID_SET_SECURITY)
 
 #define APPLICATION_LORAWAN_SEND \
     APPLICATION_APP_EVT(APPLICATION_LORAWAN_EID_SEND)
@@ -102,6 +118,18 @@ struct application_runtime_serial_begin_req {
     uint32_t result_addr;
     uint32_t port;
     uint32_t baud;
+};
+
+struct application_ble_pair_req {
+    uint32_t result_addr;
+    uint32_t conn;
+};
+
+struct application_ble_set_security_req {
+    uint32_t result_addr;
+    uint32_t conn;
+    uint8_t level;
+    uint8_t reserved[3];
 };
 
 #ifdef __cplusplus

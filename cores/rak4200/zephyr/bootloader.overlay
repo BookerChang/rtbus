@@ -32,12 +32,7 @@
 
 		storage_partition: partition@1c000 {
 			label = "storage";
-			reg = <0x0001c000 DT_SIZE_K(12)>;
-		};
-
-		my_at_storage: partition@1f000 {
-			label = "at_storage";
-			reg = <0x0001f000 DT_SIZE_K(4)>;
+			reg = <0x0001c000 DT_SIZE_K(16)>;
 		};
 	};
 };

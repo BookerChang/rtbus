@@ -58,6 +58,9 @@ BUILD_ASSERT(APPLICATION_LORAWAN_SEND_HEADER_SIZE +
              APPLICATION_LORAWAN_SEND_PAYLOAD_MAX <=
              NATIVE_RTBUS_POST_PAYLOAD_MAX,
              "Application LoRaWAN send payload exceeds rtbus post budget");
+BUILD_ASSERT(APPLICATION_BLE_SET_SECURITY_PAYLOAD_SIZE <=
+             NATIVE_RTBUS_POST_PAYLOAD_MAX,
+             "Application BLE set security payload exceeds rtbus post budget");
 
 typedef int (*native_entry_t)(void);
 

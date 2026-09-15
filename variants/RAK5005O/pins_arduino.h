@@ -58,5 +58,8 @@
 #define IO46 46U
 #define IO47 47U
 
+#define AIN1 IO20
+#define A0   AIN1
+
 #define LED0 48U //GREEN LED
 #define LED1 49U //BLUE LED

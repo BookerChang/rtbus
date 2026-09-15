@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: MPL-2.0
 
 PROFILE_NAME := rak4631
+APPLICATION_TARGET_MCU ?= cortex-m4
 ZEPHYR_BOARD ?= rak4631
 ZEPHYR_BOARD_SOURCE ?= upstream
 ZEPHYR_SOC ?= nrf52840

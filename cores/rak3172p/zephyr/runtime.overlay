@@ -38,6 +38,16 @@
 			rtbus,pin = <1>;
 			gpios = <&gpiob 5 GPIO_ACTIVE_HIGH>;
 		};
+
+		io2 {
+			rtbus,pin = <2>;
+			gpios = <&gpioa 8 GPIO_ACTIVE_HIGH>;
+		};
+
+		ain1 {
+			rtbus,pin = <20>;
+			gpios = <&gpiob 4 GPIO_ACTIVE_HIGH>;
+		};
 	};
 };
 
@@ -94,12 +104,7 @@
 
 		storage_partition: partition@3b000 {
 			label = "storage";
-			reg = <0x0003b000 DT_SIZE_K(16)>;
-		};
-
-		my_at_storage: partition@3f000 {
-			label = "at_storage";
-			reg = <0x0003f000 DT_SIZE_K(4)>;
+			reg = <0x0003b000 DT_SIZE_K(20)>;
 		};
 	};
 };
