@@ -26,7 +26,7 @@ LOG_MODULE_REGISTER(rtbus_serial, LOG_LEVEL_INF);
 #endif
 
 #define RTBUS_SERIAL_NODE DT_CHOSEN(rtbus_application_serial)
-#define RTBUS_SERIAL_RX_BUFFER_SIZE 2048U
+#define RTBUS_SERIAL_RX_BUFFER_SIZE CONFIG_RTBUS_RUNTIME_SERIAL_RX_BUFFER_SIZE
 #define RTBUS_SERIAL_DEV_OR_NULL(_chosen) \
     COND_CODE_1(DT_HAS_CHOSEN(_chosen), \
                 (DEVICE_DT_GET(DT_CHOSEN(_chosen))), \

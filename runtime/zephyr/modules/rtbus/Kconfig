@@ -78,6 +78,16 @@ config RTBUS_RUNTIME_THREAD_PRIORITY
     help
       Preemptive Zephyr priority used by the RTBus runtime thread.
 
+config RTBUS_RUNTIME_SERIAL_RX_BUFFER_SIZE
+    int "Runtime serial RX buffer size"
+    default 2048
+    range 256 65536
+    depends on RTBUS_NATIVE_SERVICE
+    help
+      Receive ring buffer size, in bytes, for each RTBus runtime serial port.
+      Increase this on USB CDC profiles when testing sender implementations
+      that stream YMODEM packets faster than the receiver can ACK them.
+
 config RTBUS_IMAGE_RAM_MAX
     int "Maximum runtime RAM declared by an RTBus image"
     default 8192
@@ -86,4 +96,25 @@ config RTBUS_IMAGE_RAM_MAX
     help
       Maximum private runtime RAM, in bytes, that an RTBus image may declare in
       its header.
+
+config RTBUS_IMAGE_FLASH_PENDING_MAX
+    int "RTBus image flash pending buffer size"
+    default 256
+    range 1 4096
+    depends on RTBUS_NATIVE_SERVICE
+    help
+      Size, in bytes, of the RAM buffer used to coalesce RTBus image store
+      writes before flushing them to flash. Increase this on profiles with more
+      RAM to reduce flash write calls, or decrease it on constrained profiles.
+      The value must be at least the flash write alignment and must be an exact
+      multiple of that alignment.
+
+config RTBUS_YMODEM_FLASH_STORE
+    bool "Store YMODEM DFU payloads to flash"
+    default y
+    depends on RTBUS_NATIVE_SERVICE
+    help
+      When enabled, the YMODEM receiver writes received DFU payloads through
+      the RTBus image store. Disable this to test the YMODEM protocol path
+      without erase, write, verify, or commit flash operations.
 endmenu

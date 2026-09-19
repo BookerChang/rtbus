@@ -77,12 +77,25 @@ static int ymodem_read_byte(uint32_t port, uint8_t *byte, int32_t timeout_ms)
 static int ymodem_read_exact(uint32_t port, uint8_t *data, size_t len,
                              int32_t timeout_ms)
 {
-    for (size_t i = 0U; i < len; i++) {
-        int ret = ymodem_read_byte(port, &data[i], timeout_ms);
+    size_t received = 0U;
+    int64_t deadline = k_uptime_get() + timeout_ms;
 
-        if (ret != 0) {
-            return ret;
+    while (received < len) {
+        size_t got = rtbus_runtime_serial_read(port,
+                                               data + received,
+                                               len - received);
+
+        if (got != 0U) {
+            received += got;
+            deadline = k_uptime_get() + timeout_ms;
+            continue;
         }
+
+        if (k_uptime_get() >= deadline) {
+            return -ETIMEDOUT;
+        }
+
+        k_sleep(K_MSEC(1));
     }
 
     return 0;

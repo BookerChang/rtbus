@@ -21,9 +21,16 @@ extern "C" {
 #define APPLICATION_RUNTIME_SERIAL_BEGIN_PAYLOAD_SIZE 12U
 #define APPLICATION_BLE_PAIR_PAYLOAD_SIZE           8U
 #define APPLICATION_BLE_SET_SECURITY_PAYLOAD_SIZE   12U
+#define APPLICATION_BLE_GAP_INIT_PAYLOAD_SIZE       8U
+#define APPLICATION_BLE_GATT_NOTIFY_REGISTER_PAYLOAD_SIZE 8U
+#define APPLICATION_BLE_GATT_VALUE_SET_PAYLOAD_SIZE \
+    ((uint16_t)sizeof(struct application_ble_gatt_value_set_req))
 #define RTBUS_CLI_LINE_MAX                          256U
 #define RTBUS_SERIAL_PORT_0                         0U
 #define RTBUS_SERIAL_PORT_1                         1U
+#define RUNTIME_BLE_GATT_VALUE_MAX                  32U
+#define RUNTIME_BLE_GAP_DATA_MAX                    4U
+#define RUNTIME_BLE_GAP_DATA_VALUE_MAX              31U
 
 enum runtime_gpio_mode {
     RUNTIME_GPIO_MODE_INPUT = 0,
@@ -60,6 +67,9 @@ enum application_ble_eid {
     APPLICATION_BLE_EID_ADV_START,
     APPLICATION_BLE_EID_PAIR,
     APPLICATION_BLE_EID_SET_SECURITY,
+    APPLICATION_BLE_EID_GAP_INIT,
+    APPLICATION_BLE_EID_GATT_NOTIFY_REGISTER,
+    APPLICATION_BLE_EID_GATT_VALUE_SET,
 };
 
 #define APPLICATION_BLE_ADV_START \
@@ -68,6 +78,12 @@ enum application_ble_eid {
     APPLICATION_APP_EVT(APPLICATION_BLE_EID_PAIR)
 #define APPLICATION_BLE_SET_SECURITY \
     APPLICATION_APP_EVT(APPLICATION_BLE_EID_SET_SECURITY)
+#define APPLICATION_BLE_GAP_INIT \
+    APPLICATION_APP_EVT(APPLICATION_BLE_EID_GAP_INIT)
+#define APPLICATION_BLE_GATT_NOTIFY_REGISTER \
+    APPLICATION_APP_EVT(APPLICATION_BLE_EID_GATT_NOTIFY_REGISTER)
+#define APPLICATION_BLE_GATT_VALUE_SET \
+    APPLICATION_APP_EVT(APPLICATION_BLE_EID_GATT_VALUE_SET)
 
 #define APPLICATION_LORAWAN_SEND \
     APPLICATION_APP_EVT(APPLICATION_LORAWAN_EID_SEND)
@@ -130,6 +146,61 @@ struct application_ble_set_security_req {
     uint32_t conn;
     uint8_t level;
     uint8_t reserved[3];
+};
+
+struct runtime_ble_gap_def {
+    uint8_t security_level;
+    uint8_t flags;
+    uint8_t adv_data_count;
+    uint8_t scan_data_count;
+    uint32_t adv_data_addr;
+    uint32_t scan_data_addr;
+};
+
+struct runtime_ble_gap_data_def {
+    uint8_t type;
+    uint8_t data_len;
+    uint8_t data[RUNTIME_BLE_GAP_DATA_VALUE_MAX];
+};
+
+struct application_ble_gap_init_req {
+    uint32_t result_addr;
+    uint32_t def_addr;
+};
+
+struct runtime_ble_gatt_chrc_def {
+    uint8_t value_uuid[16];
+    uint8_t value_len;
+    uint8_t properties;
+    uint8_t value_perm;
+    uint8_t ccc_perm;
+    uint32_t value_addr;
+};
+
+struct runtime_ble_gatt_service_def {
+    uint8_t service_uuid[16];
+    uint8_t chrc_count;
+    uint8_t reserved[3];
+    uint32_t chrcs_addr;
+};
+
+struct runtime_ble_gatt_notify_def {
+    uint8_t service_uuid[16];
+    struct runtime_ble_gatt_chrc_def chrc;
+};
+
+struct application_ble_gatt_notify_register_req {
+    uint32_t result_addr;
+    uint32_t def_addr;
+};
+
+struct application_ble_gatt_value_set_req {
+    uint32_t result_addr;
+    uint8_t handle;
+    uint8_t chrc;
+    uint8_t value_len;
+    uint8_t reserved;
+    uint32_t value_addr;
 };
 
 #ifdef __cplusplus

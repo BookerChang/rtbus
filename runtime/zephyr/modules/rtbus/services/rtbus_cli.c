@@ -9,6 +9,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/atomic.h>
+#include <zephyr/sys/reboot.h>
 #include <zephyr/sys/util.h>
 #include <zephyr/sys/iterable_sections.h>
 
@@ -86,6 +87,22 @@ static int rtbus_cli_dfu_handler(const char *args)
 RTBUS_CLI_COMMAND_DEFINE(rtbus_cli_dfu_command,
                          "DFU",
                          rtbus_cli_dfu_handler);
+
+static int rtbus_cli_reboot_handler(const char *args)
+{
+    if (args[0] != '\0') {
+        LOG_ERR("Unsupported REBOOT args: %s", args);
+        return -EINVAL;
+    }
+
+    LOG_INF("RTBus CLI reboot requested");
+    sys_reboot(SYS_REBOOT_COLD);
+    return 0;
+}
+
+RTBUS_CLI_COMMAND_DEFINE(rtbus_cli_reboot_command,
+                         "REBOOT",
+                         rtbus_cli_reboot_handler);
 
 static void rtbus_cli_dispatch_line(void)
 {

@@ -15,8 +15,7 @@ the Zephyr board support comes from:
 - `ZEPHYR_SOC`: SoC used by the Zephyr board.
 - `JLINK_TARGET`: SEGGER J-Link target name.
 - `BOARD_ROOTS`: optional Zephyr board root list. Project-owned boards should
-  keep their board tree under the owning core, for example
-  `cores/rak4200/zephyr/boards/rakwireless/rak4200`.
+  keep their board tree under the owning core's `zephyr/boards/` directory.
 
 Runtime, bootloader, profile, and project-owned Zephyr board files live under
 the owning `cores/<profile>` directory. The profile layer is the single place

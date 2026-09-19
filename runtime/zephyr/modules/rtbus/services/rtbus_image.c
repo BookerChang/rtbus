@@ -24,7 +24,7 @@ LOG_MODULE_REGISTER(rtbus_image, LOG_LEVEL_INF);
 #else
 #define RTBUS_IMAGE_DIRECT_STORE_AREA_ID RTBUS_IMAGE_SLOT_AREA_ID
 #endif
-#define RTBUS_IMAGE_FLASH_PENDING_MAX 16U
+#define RTBUS_IMAGE_FLASH_PENDING_MAX CONFIG_RTBUS_IMAGE_FLASH_PENDING_MAX
 
 struct rtbus_image_header {
     uint32_t magic;
@@ -44,6 +44,8 @@ BUILD_ASSERT(offsetof(struct rtbus_image_header, payload_size) ==
              RTBUS_IMAGE_PAYLOAD_SIZE_OFFSET);
 BUILD_ASSERT(sizeof(struct rtbus_image_native_metadata) <=
              sizeof(((struct rtbus_image_header *)0)->reserved));
+BUILD_ASSERT(CONFIG_RTBUS_IMAGE_FLASH_PENDING_MAX > 0,
+             "CONFIG_RTBUS_IMAGE_FLASH_PENDING_MAX must be greater than zero");
 
 struct rtbus_image_store_context {
     const struct flash_area *flash_area;
@@ -259,10 +261,12 @@ static int rtbus_image_commit_store_to_slot(void)
 
 static int rtbus_image_store_flush_flash(bool final)
 {
+    size_t write_len;
     int rc;
 
     if (store_ctx.flash_area == NULL || store_ctx.flash_align == 0U ||
-        store_ctx.flash_align > sizeof(store_ctx.flash_pending)) {
+        store_ctx.flash_align > sizeof(store_ctx.flash_pending) ||
+        (sizeof(store_ctx.flash_pending) % store_ctx.flash_align) != 0U) {
         return -EINVAL;
     }
 
@@ -270,22 +274,26 @@ static int rtbus_image_store_flush_flash(bool final)
         return 0;
     }
 
-    if (!final && store_ctx.flash_pending_len < store_ctx.flash_align) {
+    if (!final && store_ctx.flash_pending_len < sizeof(store_ctx.flash_pending)) {
         return 0;
     }
 
+    write_len = final ?
+        ROUND_UP(store_ctx.flash_pending_len, store_ctx.flash_align) :
+        sizeof(store_ctx.flash_pending);
+
     memset(store_ctx.flash_pending + store_ctx.flash_pending_len, 0xff,
-           store_ctx.flash_align - store_ctx.flash_pending_len);
+           write_len - store_ctx.flash_pending_len);
 
     rc = flash_area_write(store_ctx.flash_area,
                           (off_t)store_ctx.flash_write_offset,
                           store_ctx.flash_pending,
-                          store_ctx.flash_align);
+                          write_len);
     if (rc != 0) {
         return rc;
     }
 
-    store_ctx.flash_write_offset += store_ctx.flash_align;
+    store_ctx.flash_write_offset += write_len;
     store_ctx.flash_pending_len = 0U;
     return 0;
 }
@@ -299,7 +307,9 @@ static int rtbus_image_store_write_flash(size_t offset, const uint8_t *data,
     }
 
     while (size > 0U) {
-        size_t copy_len = MIN(size, store_ctx.flash_align - store_ctx.flash_pending_len);
+        size_t copy_len = MIN(size,
+                              sizeof(store_ctx.flash_pending) -
+                                  store_ctx.flash_pending_len);
         int rc;
 
         memcpy(store_ctx.flash_pending + store_ctx.flash_pending_len, data, copy_len);
