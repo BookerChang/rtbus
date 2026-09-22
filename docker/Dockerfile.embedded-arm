@@ -2,12 +2,15 @@ ARG EMBEDDED_ZEPHYR_IMAGE=ghcr.io/embeddedcontainers/zephyr:arm-1.0.0SDK
 FROM ${EMBEDDED_ZEPHYR_IMAGE}
 
 ARG ZEPHYR_SDK_VERSION=1.0.0
+ARG RTBUS_ZEPHYR_WORKSPACE=/opt/rtbus/zephyr-workspace
 ARG ARDUINO_CLI_VERSION=1.5.1
 
 USER root
 
 ENV ZEPHYR_TOOLCHAIN_VARIANT=zephyr
 ENV ZEPHYR_SDK_INSTALL_DIR=/opt/toolchains/zephyr-sdk-${ZEPHYR_SDK_VERSION}
+ENV RTBUS_ZEPHYR_WORKSPACE=${RTBUS_ZEPHYR_WORKSPACE}
+ENV ZEPHYR_BASE=${RTBUS_ZEPHYR_WORKSPACE}/zephyr
 ENV ARDUINO_UPDATER_ENABLE_NOTIFICATION=false
 ENV PATH=/opt/venv/bin:${ZEPHYR_SDK_INSTALL_DIR}/gnu/arm-zephyr-eabi/bin:${PATH}
 
@@ -20,6 +23,7 @@ RUN apt-get update \
         g++ \
         git \
         make \
+        tcc \
     && rm -rf /var/lib/apt/lists/* \
     && python3 -m pip install --break-system-packages --no-cache-dir \
         'PyYAML>=6.0' \
@@ -50,6 +54,7 @@ RUN apt-get update \
     && ninja --version \
     && make --version \
     && git --version \
+    && tcc -v \
     && test -d ${ZEPHYR_SDK_INSTALL_DIR} \
     && test -x ${ZEPHYR_SDK_INSTALL_DIR}/gnu/arm-zephyr-eabi/bin/arm-zephyr-eabi-gcc \
     && arm-zephyr-eabi-gcc --version

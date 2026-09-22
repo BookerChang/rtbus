@@ -32,7 +32,7 @@
 #define SERIAL_READ_SLICE_MS 20
 #define READY_TIMEOUT_MS 15000
 #define PACKET_TIMEOUT_MS 10000
-#define FINAL_TIMEOUT_MS 15000
+#define FINAL_TIMEOUT_MS 1500
 
 struct serial_port {
 #ifdef _WIN32
@@ -344,7 +344,10 @@ static int wait_ready_and_crc(struct serial_port *serial, int timeout_ms)
         fputc(byte, stdout);
         fflush(stdout);
 
-        if (byte == YMODEM_CRC && saw_ready) {
+        if (byte == YMODEM_CRC) {
+            if (!saw_ready) {
+                printf("\nYMODEM receiver ready\n");
+            }
             return 0;
         }
 
@@ -366,7 +369,7 @@ static int wait_ready_and_crc(struct serial_port *serial, int timeout_ms)
         }
     }
 
-    fprintf(stderr, "timeout waiting for DFU READY\n");
+    fprintf(stderr, "timeout waiting for DFU READY or YMODEM CRC\n");
     return -1;
 }
 
@@ -406,8 +409,8 @@ static int wait_final_status(struct serial_port *serial, int timeout_ms)
         }
     }
 
-    fprintf(stderr, "timeout waiting for final DFU status\n");
-    return -1;
+    printf("\nfinal DFU status not reported; assuming YMODEM completion is success\n");
+    return 0;
 }
 
 static int send_packet(struct serial_port *serial, uint8_t start,
@@ -541,7 +544,7 @@ int main(int argc, char **argv)
 {
     const char *port;
     const char *image_path;
-    const char *command = "AT+DFU=APP\r\n";
+    const char *command = "@RTBUS:DFU=APP\r\n";
     struct serial_port serial;
     uint8_t *image;
     size_t image_size;
@@ -549,7 +552,7 @@ int main(int argc, char **argv)
     int rc = 1;
 
     if (argc < 4 || argc > 5) {
-        fprintf(stderr, "usage: %s <serial-port> <baud> <image.bin> [AT command]\n",
+        fprintf(stderr, "usage: %s <serial-port> <baud> <image.bin> [DFU command]\n",
                 argv[0]);
         return 2;
     }

@@ -1,13 +1,25 @@
 RTBus RTDuo Arduino Platform
 Copyright (c) 2026 RTBus contributors.
 
-This project provides the RTBus RTDuo Arduino package.
+This repository provides the RTBus RTDuo Arduino platform and the thin Zephyr
+runtime application used to run RTBus native application images.
 
 The public Arduino package identity is:
 
     rtbus:rtduo
 
-Runtime ABI symbols, enum names, and native API macros use RTBus naming.
+RTDuo is the Arduino-compatible application profile for RTBus. Runtime ABI
+symbols, enum names, and native API macros use RTBus naming.
+
+Unless noted otherwise in individual source files, RTBus source files in this
+repository are licensed under the Mozilla Public License Version 2.0.
+
+The build flow may fetch, mount, or execute third-party components such as
+Zephyr, MCUboot, Zephyr SDK toolchains, Arduino CLI, HPatchLite, and container
+base images. Those components are provided by their respective projects and are
+governed by their own licenses and notices. Keeping a Zephyr workspace in a
+Docker or Podman volume does not change the ownership or licensing of those
+upstream sources.
 
 RAKWireless board names such as RAK4631, RAK3172, RAK11720, and RAK4200 refer
 to the target hardware modules and boards. They do not imply that this package

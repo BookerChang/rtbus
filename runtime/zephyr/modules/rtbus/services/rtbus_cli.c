@@ -56,6 +56,9 @@ RTBUS_CLI_COMMAND_DEFINE(rtbus_cli_test_command,
 
 static int rtbus_cli_dfu_handler(const char *args)
 {
+    static const uint8_t ready[] = "READY\r\n";
+    static const uint8_t staged[] = "MODULE STAGED\r\n";
+    static const uint8_t error[] = "ERROR\r\n";
     int ret;
 
     if (strcmp(args, "APP") != 0) {
@@ -73,13 +76,29 @@ static int rtbus_cli_dfu_handler(const char *args)
         return ret;
     }
 
+    if (rtbus_runtime_serial_write(RTBUS_SERIAL_PORT_0,
+                                   ready,
+                                   sizeof(ready) - 1U) != sizeof(ready) - 1U) {
+        atomic_set(&rtbus_cli_input_enabled, 1);
+        native_service_resume_after_upgrade();
+        native_service_suppress_console(false);
+        LOG_ERR("DFU READY write failed");
+        return -EIO;
+    }
+
     ret = rtbus_ymodem_recv(RTBUS_SERIAL_PORT_0);
     atomic_set(&rtbus_cli_input_enabled, 1);
-    native_service_resume_after_upgrade();
-
     if (ret != 0) {
+        (void)rtbus_runtime_serial_write(RTBUS_SERIAL_PORT_0,
+                                         error,
+                                         sizeof(error) - 1U);
         LOG_ERR("YMODEM receive test failed: %d", ret);
+    } else {
+        (void)rtbus_runtime_serial_write(RTBUS_SERIAL_PORT_0,
+                                         staged,
+                                         sizeof(staged) - 1U);
     }
+    native_service_resume_after_upgrade();
 
     return ret;
 }

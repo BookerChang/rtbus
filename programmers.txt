@@ -1,4 +1,7 @@
 none.name=No programmer
+none.communication=serial
+none.protocol=ymodem
+none.program.tool=ymodem_upload
 
 ymodem.name=YMODEM Application Upgrade
 ymodem.communication=serial

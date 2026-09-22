@@ -5,6 +5,7 @@ BOOTLOADER_BUILD_DIR ?= $(ZEPHYR_BUILD_ROOT)/$(BOOTLOADER)/$(BOARD_PROFILE)
 BOOTLOADER_SHARE_DIR ?= $(ZEPHYR_SHARE_ROOT)/$(BOOTLOADER)/$(BOARD_PROFILE)
 BOOTLOADER_BUILD_DIR_DOCKER := $(call docker_path,$(BOOTLOADER_BUILD_DIR))
 BOOTLOADER_SHARE_DIR_DOCKER := $(call docker_path,$(BOOTLOADER_SHARE_DIR))
+BOOTLOADER_CONTAINER_BUILD_DIR ?= $(RTBUS_CONTAINER_BUILD_ROOT)/$(BOOTLOADER)/$(BOARD_PROFILE)
 BOOTLOADER_HEX := $(BOOTLOADER_BUILD_DIR)/zephyr/zephyr.hex
 RAK3172_BOOTLOADER_BUILD_DIR := $(ZEPHYR_BUILD_ROOT)/$(BOOTLOADER)/rak3172
 
@@ -22,4 +23,4 @@ endif
 .PHONY: bootloader
 bootloader: builder.image zephyr.workspace
 	@test -n "$(ZEPHYR_BOARD)" || { echo "Unsupported BOARD_PROFILE=$(BOARD_PROFILE)" >&2; exit 1; }
-	$(DOCKER_RUN) sh -ec 'west build -b "$(BOARDS)" -d "$(BOOTLOADER_BUILD_DIR_DOCKER)" -p always -s "$(DOCKER_WORK)/$(BOOTLOADER_APP_DIR)/mcuboot/boot/zephyr" -- -DCMAKE_EXPORT_COMPILE_COMMANDS=ON $(BOARD_ROOT_ARG) $(BOOTLOADER_BOARD_ARGS); rm -rf "$(BOOTLOADER_SHARE_DIR_DOCKER)"; mkdir -p "$(BOOTLOADER_SHARE_DIR_DOCKER)"; for f in zephyr.hex zephyr.bin zephyr.elf zephyr.map zephyr.dts .config; do if [ -f "$(BOOTLOADER_BUILD_DIR_DOCKER)/zephyr/$$f" ]; then cp "$(BOOTLOADER_BUILD_DIR_DOCKER)/zephyr/$$f" "$(BOOTLOADER_SHARE_DIR_DOCKER)/$$f"; fi; done; if [ -f "$(BOOTLOADER_BUILD_DIR_DOCKER)/compile_commands.json" ]; then cp "$(BOOTLOADER_BUILD_DIR_DOCKER)/compile_commands.json" "$(BOOTLOADER_SHARE_DIR_DOCKER)/compile_commands.json"; fi; echo "Bootloader artifacts exported: $(BOOTLOADER_SHARE_DIR_DOCKER)"'
+	$(DOCKER_RUN) sh -ec 'rm -rf "$(BOOTLOADER_CONTAINER_BUILD_DIR)" "$(BOOTLOADER_BUILD_DIR_DOCKER)"; cd "$(RTBUS_ZEPHYR_WORKSPACE)" && west build -b "$(BOARDS)" -d "$(BOOTLOADER_CONTAINER_BUILD_DIR)" -s "$(RTBUS_ZEPHYR_WORKSPACE)/$(BOOTLOADER_APP_DIR)/mcuboot/boot/zephyr" -- -DCMAKE_EXPORT_COMPILE_COMMANDS=ON $(BOARD_ROOT_ARG) $(BOOTLOADER_BOARD_ARGS); mkdir -p "$$(dirname "$(BOOTLOADER_BUILD_DIR_DOCKER)")"; cp -a "$(BOOTLOADER_CONTAINER_BUILD_DIR)" "$(BOOTLOADER_BUILD_DIR_DOCKER)"; rm -rf "$(BOOTLOADER_SHARE_DIR_DOCKER)"; mkdir -p "$(BOOTLOADER_SHARE_DIR_DOCKER)"; for f in zephyr.hex zephyr.bin zephyr.elf zephyr.map zephyr.dts .config; do if [ -f "$(BOOTLOADER_BUILD_DIR_DOCKER)/zephyr/$$f" ]; then cp "$(BOOTLOADER_BUILD_DIR_DOCKER)/zephyr/$$f" "$(BOOTLOADER_SHARE_DIR_DOCKER)/$$f"; fi; done; if [ -f "$(BOOTLOADER_BUILD_DIR_DOCKER)/compile_commands.json" ]; then cp "$(BOOTLOADER_BUILD_DIR_DOCKER)/compile_commands.json" "$(BOOTLOADER_SHARE_DIR_DOCKER)/compile_commands.json"; fi; echo "Bootloader artifacts exported: $(BOOTLOADER_SHARE_DIR_DOCKER)"'

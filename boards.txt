@@ -8,6 +8,8 @@ RAK4631.build.f_cpu=64000000L
 RAK4631.build.arch=NRF52
 RAK4631.upload.tool=ymodem_upload
 RAK4631.upload.speed=115200
+RAK4631.program.tool=ymodem_upload
+RAK4631.program.speed=115200
 RAK4631.bootloader.tool=rtduo_vscode
 RAK4631.upload.maximum_size=40832
 RAK4631.upload.maximum_data_size=8192
@@ -24,6 +26,8 @@ RAK3172P.build.arch=STM32WL
 
 RAK3172P.upload.tool=ymodem_upload
 RAK3172P.upload.speed=115200
+RAK3172P.program.tool=ymodem_upload
+RAK3172P.program.speed=115200
 RAK3172P.bootloader.tool=rtduo_vscode
 RAK3172P.upload.maximum_size=40832
 RAK3172P.upload.maximum_data_size=4096
@@ -39,6 +43,8 @@ RAK3172T.build.arch=STM32WL
 
 RAK3172T.upload.tool=ymodem_upload
 RAK3172T.upload.speed=115200
+RAK3172T.program.tool=ymodem_upload
+RAK3172T.program.speed=115200
 RAK3172T.bootloader.tool=rtduo_vscode
 RAK3172T.upload.maximum_size=40832
 RAK3172T.upload.maximum_data_size=4096
@@ -54,6 +60,8 @@ RAK11720.build.arch=APOLLO3
 
 RAK11720.upload.tool=ymodem_upload
 RAK11720.upload.speed=115200
+RAK11720.program.tool=ymodem_upload
+RAK11720.program.speed=115200
 RAK11720.bootloader.tool=rtduo_vscode
 RAK11720.upload.maximum_size=40832
 RAK11720.upload.maximum_data_size=8192
@@ -69,6 +77,8 @@ RAK4200.build.arch=STM32L0
 
 RAK4200.upload.tool=ymodem_upload
 RAK4200.upload.speed=115200
+RAK4200.program.tool=ymodem_upload
+RAK4200.program.speed=115200
 RAK4200.bootloader.tool=rtduo_vscode
 RAK4200.upload.maximum_size=16256
 RAK4200.upload.maximum_data_size=1024

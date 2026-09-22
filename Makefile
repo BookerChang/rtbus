@@ -6,6 +6,10 @@ DOCKER_WORK ?= /workdir
 ARDUINO_CONFIG ?= arduino-cli.yaml
 ARDUINO_PACKAGE_ROOT ?= build.arduino/package
 ARDUINO_PACKAGE_DIR ?= $(ARDUINO_PACKAGE_ROOT)/hardware/rtbus/rtduo
+ARDUINO_DIST_DIR ?= dist/arduino
+ARDUINO_PACKAGE_INDEX ?= package_rtbus_index.json
+ARDUINO_PACKAGE_BASE_URL ?=
+ARDUINO_PACKAGE_TOOL_ARGS ?=
 ARDUINO_SKETCH ?= libraries/RTDuo/examples/HelloWorld
 ARDUINO_BUILD_ROOT ?= build.arduino
 BOOTLOADER ?= bootloader
@@ -35,7 +39,8 @@ ARDUINO_APPLICATION_JFLASH_HEX ?= $(ARDUINO_SKETCH_NAME).ino.signed.hex
 ZEPHYR_SDK_VERSION ?= 1.0.0
 ARDUINO_LOCAL_COMPILER_PATH ?= /opt/toolchains/zephyr-sdk-$(ZEPHYR_SDK_VERSION)/gnu/arm-zephyr-eabi/bin/
 ARDUINO_LOCAL_HOST_COMPILER_PATH ?= /usr/bin/
-ARDUINO_LOCAL_HOST_COMPILER_CMD ?= gcc
+ARDUINO_LOCAL_HOST_COMPILER_CMD ?= tcc
+ARDUINO_LOCAL_HOST_COMPILER_FLAGS ?=
 JLINK_CMD ?= myjlink
 JLINK_SERVER_DIR ?= /home/usera/001.mypjt/002.server_segger
 JLINK_EXE ?= $(JLINK_SERVER_DIR)/.res/JLink.linux/JLinkExe
@@ -76,12 +81,23 @@ APPLICATION_BUILD_TMP_DIR_DOCKER = $(call docker_path,$(APPLICATION_BUILD_TMP_DI
 include runtime/zephyr/runtime/runtime.mk
 include runtime/zephyr/bootloader.mk
 
-DOCKER_RUN = $(VM) run --rm -v $(CURDIR):$(DOCKER_WORK) -w $(DOCKER_WORK) $(DOCKER_IMAGE)
+DOCKER_RUN = $(VM) run --rm \
+	-v $(CURDIR):$(DOCKER_WORK) \
+	-v $(RTBUS_ZEPHYR_VOLUME):$(RTBUS_ZEPHYR_WORKSPACE) \
+	--tmpfs $(DOCKER_WORK)/.west \
+	-w $(DOCKER_WORK) \
+	-e RTBUS_ZEPHYR_WORKSPACE=$(RTBUS_ZEPHYR_WORKSPACE) \
+	-e ZEPHYR_BASE=$(RTBUS_ZEPHYR_WORKSPACE)/zephyr \
+	-e ZEPHYR_SDK_INSTALL_DIR=/opt/toolchains/zephyr-sdk-$(ZEPHYR_SDK_VERSION) \
+	-e ZEPHYR_TOOLCHAIN_VARIANT=zephyr \
+	$(DOCKER_IMAGE)
 ARDUINO_LOCAL_BUILD_PROPERTIES = \
 	--build-property compiler.path=$(ARDUINO_LOCAL_COMPILER_PATH) \
 	--build-property compiler.host.path=$(ARDUINO_LOCAL_HOST_COMPILER_PATH) \
 	--build-property compiler.host.cmd=$(ARDUINO_LOCAL_HOST_COMPILER_CMD) \
-	--build-property compiler.host.flags=
+	--build-property compiler.host.flags=$(ARDUINO_LOCAL_HOST_COMPILER_FLAGS) \
+	--build-property tools.ymodem_upload.cmd.path=$(ARDUINO_LOCAL_HOST_COMPILER_PATH)$(ARDUINO_LOCAL_HOST_COMPILER_CMD) \
+	--build-property tools.ymodem_upload.flags=$(ARDUINO_LOCAL_HOST_COMPILER_FLAGS)
 
 .DEFAULT_GOAL := arduino.boards
 
@@ -154,6 +170,13 @@ arduino.package.local:
 	rm -rf $(ARDUINO_PACKAGE_DIR)
 	mkdir -p $(ARDUINO_PACKAGE_DIR)
 	cp -a cores variants libraries system boards.txt platform.txt programmers.txt $(ARDUINO_PACKAGE_DIR)/
+
+.PHONY: package.rtbus.index
+package.rtbus.index:
+	$(if $(strip $(ARDUINO_PACKAGE_BASE_URL)),scripts/package_rtbus_index.sh $(ARDUINO_PACKAGE_BASE_URL),scripts/package_rtbus_index.sh)
+
+.PHONY: arduino.package.index
+arduino.package.index: package.rtbus.index
 
 .PHONY: arduino.boards
 arduino.boards: builder.image arduino.package.local

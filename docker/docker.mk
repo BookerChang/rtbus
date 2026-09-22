@@ -25,12 +25,16 @@ endef
 endif
 
 ZEPHYR_SDK_VERSION ?= 1.0.0
+ZEPHYR_VERSION ?= v4.4.0
 ARDUINO_CLI_VERSION ?= 1.5.1
 ZEPHYR_BASE_IMAGE ?= ghcr.io/embeddedcontainers/zephyr:arm-$(ZEPHYR_SDK_VERSION)SDK
 RTBUS_BUILDER_DOCKERFILE ?= docker/Dockerfile.embedded-arm
 RTBUS_BUILDER_IMAGE ?= localhost/rtbus-zephyr:arm-$(ZEPHYR_SDK_VERSION)
 DOCKER_IMAGE ?= $(RTBUS_BUILDER_IMAGE)
 DOCKER_WORK ?= /workdir
+RTBUS_ZEPHYR_WORKSPACE ?= /opt/rtbus/zephyr-workspace
+RTBUS_CONTAINER_BUILD_ROOT ?= /tmp/rtbus-build
+RTBUS_ZEPHYR_VOLUME ?= rtbus-zephyr-workspace-$(ZEPHYR_VERSION)
 
 EMPTY :=
 SPACE := $(EMPTY) $(EMPTY)
@@ -69,6 +73,7 @@ docker.build:
 	$(VM) build \
 		--build-arg EMBEDDED_ZEPHYR_IMAGE=$(ZEPHYR_BASE_IMAGE) \
 		--build-arg ZEPHYR_SDK_VERSION=$(ZEPHYR_SDK_VERSION) \
+		--build-arg RTBUS_ZEPHYR_WORKSPACE=$(RTBUS_ZEPHYR_WORKSPACE) \
 		--build-arg ARDUINO_CLI_VERSION=$(ARDUINO_CLI_VERSION) \
 		-t $(RTBUS_BUILDER_IMAGE) \
 		-f $(RTBUS_BUILDER_DOCKERFILE) .
@@ -84,34 +89,35 @@ docker.image:
 
 .PHONY: zephyr.workspace
 zephyr.workspace: docker.image
-	@if [ -f .west/config ] \
-		&& [ -f zephyr/west.yml ] \
-		&& [ -d modules/hal/nordic ] \
-		&& [ -d modules/hal/stm32 ] \
-		&& [ -d modules/hal/ambiq ] \
-		&& [ ! -d modules/hal/nxp ]; then \
-		exit 0; \
-	fi; \
-	echo "Zephyr workspace is missing or not using the reduced module set; initializing."; \
 	$(VM) run --user root --rm \
-		-v $(CURDIR):$(DOCKER_WORK) \
-		-w $(DOCKER_WORK) \
+		-v $(RTBUS_ZEPHYR_VOLUME):$(RTBUS_ZEPHYR_WORKSPACE) \
 		-e ZEPHYR_SDK_INSTALL_DIR=/opt/toolchains/zephyr-sdk-$(ZEPHYR_SDK_VERSION) \
 		-e ZEPHYR_TOOLCHAIN_VARIANT=zephyr \
 		$(DOCKER_IMAGE) \
-		sh -ec 'git config --global http.version HTTP/1.1; \
-			rm -rf .west zephyr modules bootloader tools; \
-			git clone --depth=1 --single-branch --branch v4.4.0 https://github.com/zephyrproject-rtos/zephyr zephyr; \
+		sh -ec 'if [ -f "$(RTBUS_ZEPHYR_WORKSPACE)/.west/config" ] \
+				&& [ -f "$(RTBUS_ZEPHYR_WORKSPACE)/zephyr/west.yml" ] \
+				&& [ -d "$(RTBUS_ZEPHYR_WORKSPACE)/modules/hal/nordic" ] \
+				&& [ -d "$(RTBUS_ZEPHYR_WORKSPACE)/modules/hal/stm32" ] \
+				&& [ -d "$(RTBUS_ZEPHYR_WORKSPACE)/modules/hal/ambiq" ] \
+				&& [ ! -d "$(RTBUS_ZEPHYR_WORKSPACE)/modules/hal/nxp" ]; then \
+				exit 0; \
+			fi; \
+			echo "Zephyr workspace volume is missing or not using the reduced module set; initializing."; \
+			git config --global http.version HTTP/1.1; \
+			rm -rf "$(RTBUS_ZEPHYR_WORKSPACE)"/.west "$(RTBUS_ZEPHYR_WORKSPACE)"/zephyr "$(RTBUS_ZEPHYR_WORKSPACE)"/modules "$(RTBUS_ZEPHYR_WORKSPACE)"/bootloader "$(RTBUS_ZEPHYR_WORKSPACE)"/tools; \
+			cd "$(RTBUS_ZEPHYR_WORKSPACE)"; \
+			git clone --depth=1 --single-branch --branch "$(ZEPHYR_VERSION)" https://github.com/zephyrproject-rtos/zephyr zephyr; \
 			west init -l zephyr; \
 			west config manifest.project-filter -- "$(ZEPHYR_PROJECT_FILTER)"; \
 			west -v update --narrow --fetch-opt=--depth=1 || { echo "Shallow west update failed; retrying with full fetch."; west -v update --narrow; }; \
 			cd zephyr; \
 			west zephyr-export; \
-			echo "Zephyr workspace init done"'
+			echo "Zephyr workspace volume init done: $(RTBUS_ZEPHYR_VOLUME)"'
 
 .PHONY: zephyr.workspace.clean
 zephyr.workspace.clean:
-	rm -rf .west zephyr modules bootloader tools
+	$(call resolve_container_cli)
+	$(VM) volume rm $(RTBUS_ZEPHYR_VOLUME)
 
 .PHONY: docker.images
 docker.images:
@@ -122,7 +128,11 @@ docker.images:
 docker.shell: docker.image
 	$(VM) run -it --user root --rm \
 		-v $(CURDIR):$(DOCKER_WORK) \
+		-v $(RTBUS_ZEPHYR_VOLUME):$(RTBUS_ZEPHYR_WORKSPACE) \
+		--tmpfs $(DOCKER_WORK)/.west \
 		-w $(DOCKER_WORK) \
+		-e RTBUS_ZEPHYR_WORKSPACE=$(RTBUS_ZEPHYR_WORKSPACE) \
+		-e ZEPHYR_BASE=$(RTBUS_ZEPHYR_WORKSPACE)/zephyr \
 		-e ZEPHYR_SDK_INSTALL_DIR=/opt/toolchains/zephyr-sdk-$(ZEPHYR_SDK_VERSION) \
 		-e ZEPHYR_TOOLCHAIN_VARIANT=zephyr \
 		$(DOCKER_IMAGE)

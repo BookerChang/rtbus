@@ -1,0 +1,11 @@
+.git
+.west
+.arduino
+bootloader
+build.arduino
+build.zephyr
+build.zephyr.tmp
+modules
+tools
+zephyr
+zephyr-share

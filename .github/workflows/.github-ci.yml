@@ -2,6 +2,7 @@ name: Test Local Runner
 
 on:
   push:
+  workflow_dispatch:
 
 jobs:
   test:

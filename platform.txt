@@ -1,5 +1,5 @@
 name=RTDuo Arduino Platform
-version=0.1.0
+version=0.1.9
 
 compiler.path={runtime.tools.arm-zephyr-eabi.path}/bin/
 compiler.host.path={runtime.tools.tcc.path}/
@@ -13,6 +13,7 @@ compiler.ar.cmd=arm-zephyr-eabi-ar
 compiler.objcopy.cmd=arm-zephyr-eabi-objcopy
 compiler.size.cmd=arm-zephyr-eabi-size
 compiler.host.flags=
+compiler.host.flags.windows=
 compiler.host.flags.linux=-B{runtime.tools.tcc.path}/lib/tcc
 compiler.host.flags.macosx=-B{runtime.tools.tcc.path}/lib/tcc
 
@@ -36,6 +37,7 @@ tools.ymodem_upload.cmd.path.windows={runtime.tools.tcc.path}/tcc.exe
 tools.ymodem_upload.cmd.path.linux={runtime.tools.tcc.path}/bin/tcc
 tools.ymodem_upload.cmd.path.macosx={runtime.tools.tcc.path}/bin/tcc
 tools.ymodem_upload.flags=
+tools.ymodem_upload.flags.windows=
 tools.ymodem_upload.flags.linux=-B{runtime.tools.tcc.path}/lib/tcc
 tools.ymodem_upload.flags.macosx=-B{runtime.tools.tcc.path}/lib/tcc
 tools.ymodem_upload.source.path={runtime.platform.path}/system/ymodem_upload.c
@@ -44,7 +46,7 @@ tools.ymodem_upload.upload.params.verbose=
 tools.ymodem_upload.upload.pattern="{cmd.path}" -x c -std=c99 -Wall -Wextra -Werror -O2 -run "{runtime.platform.path}/system/ymodem_upload.c" "{serial.port}" "{upload.speed}" "{build.path}/{build.project_name}.signed.bin"
 tools.ymodem_upload.program.params.quiet=
 tools.ymodem_upload.program.params.verbose=
-tools.ymodem_upload.program.pattern="{cmd.path}" -x c -std=c99 -Wall -Wextra -Werror -O2 -run "{runtime.platform.path}/system/ymodem_upload.c" "{serial.port}" "{upload.speed}" "{build.path}/{build.project_name}.signed.bin"
+tools.ymodem_upload.program.pattern="{cmd.path}" -x c -std=c99 -Wall -Wextra -Werror -O2 -run "{runtime.platform.path}/system/ymodem_upload.c" "{serial.port}" "{program.speed}" "{build.path}/{build.project_name}.signed.bin"
 tools.rtduo_vscode.cmd=code
 tools.rtduo_vscode.cmd.path=code
 tools.rtduo_vscode.program.params.quiet=
