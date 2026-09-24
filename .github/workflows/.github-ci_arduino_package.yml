@@ -49,15 +49,10 @@ jobs:
         run: |
           set -eu
 
-          platform_version="$(sed -n 's/^version=//p' platform.txt | head -n 1)"
-          if [ "${platform_version}" != "${VERSION}" ]; then
-            echo ".version ${VERSION} does not match platform.txt version ${platform_version}" >&2
-            exit 1
-          fi
-
           python3 scripts/package_arduino.py \
             --output-dir dist/arduino \
             --index-file package_rtbus_index.json \
+            --version "${VERSION}" \
             --base-url "https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG_NAME}"
 
           package_archive="dist/arduino/rtduo-${VERSION}.tar.gz"
