@@ -56,10 +56,13 @@ jobs:
             --base-url "https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG_NAME}"
 
           package_archive="dist/arduino/rtduo-${VERSION}.tar.gz"
+          package_index="dist/arduino/package_rtbus_index.json"
 
           test -s "${package_archive}"
+          test -s "${package_index}"
 
           echo "archive=${package_archive}" >> "${GITHUB_OUTPUT}"
+          echo "index=${package_index}" >> "${GITHUB_OUTPUT}"
 
       - name: Create GitHub Release
         env:
@@ -94,3 +97,26 @@ jobs:
           gh release upload "${TAG_NAME}" \
             "${PACKAGE_ARCHIVE}" \
             --repo "${GITHUB_REPOSITORY}"
+
+      - name: Publish package index
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PACKAGE_INDEX: ${{ steps.package.outputs.index }}
+        shell: bash
+        run: |
+          set -eu
+
+          index_tag="package-index"
+
+          if ! gh release view "${index_tag}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            gh release create "${index_tag}" \
+              --repo "${GITHUB_REPOSITORY}" \
+              --title "Arduino Package Index" \
+              --notes "Stable Arduino Boards Manager package index." \
+              --latest=false
+          fi
+
+          gh release upload "${index_tag}" \
+            "${PACKAGE_INDEX}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --clobber
