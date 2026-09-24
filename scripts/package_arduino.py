@@ -30,7 +30,7 @@ DEFAULT_VENDOR = "rtbus"
 DEFAULT_ARCHITECTURE = "rtduo"
 ARM_ZEPHYR_EABI_WINDOWS_URL = (
     "https://github.com/BookerChang/rtbus/releases/download/"
-    "tools-v0.0.1/arm-zephyr-eabi-1.0.1-windows-x86_64.zip"
+    "tools/arm-zephyr-eabi-1.0.1-windows-x86_64.zip"
 )
 
 
