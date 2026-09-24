@@ -28,6 +28,10 @@ PLATFORM_FILES = (
 )
 DEFAULT_VENDOR = "rtbus"
 DEFAULT_ARCHITECTURE = "rtduo"
+ARM_ZEPHYR_EABI_WINDOWS_URL = (
+    "https://github.com/BookerChang/rtbus/releases/download/"
+    "tools-v0.0.1/arm-zephyr-eabi-1.0.1-windows-x86_64.zip"
+)
 
 
 @dataclass(frozen=True)
@@ -63,7 +67,7 @@ DEFAULT_TOOL_SYSTEMS = (
         name="arm-zephyr-eabi",
         version="1.0.1",
         host="x86_64-mingw32",
-        url="https://github.com/BookerChang/rtbus-tools/releases/download/v0.0.1/arm-zephyr-eabi-1.0.1-windows-x86_64.zip",
+        url=ARM_ZEPHYR_EABI_WINDOWS_URL,
         archive_file_name="arm-zephyr-eabi-1.0.1-windows-x86_64.zip",
         checksum="SHA-256:6d5bcaa2b507c2dcf3ad3296a08b58e179f5ba8bca53435e5d92928902db059f",
         size="215653219",
@@ -72,7 +76,7 @@ DEFAULT_TOOL_SYSTEMS = (
         name="arm-zephyr-eabi",
         version="1.0.1",
         host="amd64-mingw32",
-        url="https://github.com/BookerChang/rtbus-tools/releases/download/v0.0.1/arm-zephyr-eabi-1.0.1-windows-x86_64.zip",
+        url=ARM_ZEPHYR_EABI_WINDOWS_URL,
         archive_file_name="arm-zephyr-eabi-1.0.1-windows-x86_64.zip",
         checksum="SHA-256:6d5bcaa2b507c2dcf3ad3296a08b58e179f5ba8bca53435e5d92928902db059f",
         size="215653219",
@@ -81,7 +85,7 @@ DEFAULT_TOOL_SYSTEMS = (
         name="arm-zephyr-eabi",
         version="1.0.1",
         host="x86_64-cygwin",
-        url="https://github.com/BookerChang/rtbus-tools/releases/download/v0.0.1/arm-zephyr-eabi-1.0.1-windows-x86_64.zip",
+        url=ARM_ZEPHYR_EABI_WINDOWS_URL,
         archive_file_name="arm-zephyr-eabi-1.0.1-windows-x86_64.zip",
         checksum="SHA-256:6d5bcaa2b507c2dcf3ad3296a08b58e179f5ba8bca53435e5d92928902db059f",
         size="215653219",
@@ -90,7 +94,7 @@ DEFAULT_TOOL_SYSTEMS = (
         name="arm-zephyr-eabi",
         version="1.0.1",
         host="i686-mingw32",
-        url="https://github.com/BookerChang/rtbus-tools/releases/download/v0.0.1/arm-zephyr-eabi-1.0.1-windows-x86_64.zip",
+        url=ARM_ZEPHYR_EABI_WINDOWS_URL,
         archive_file_name="arm-zephyr-eabi-1.0.1-windows-x86_64.zip",
         checksum="SHA-256:6d5bcaa2b507c2dcf3ad3296a08b58e179f5ba8bca53435e5d92928902db059f",
         size="215653219",

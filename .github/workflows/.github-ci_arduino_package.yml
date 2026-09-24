@@ -1,9 +1,7 @@
 name: Arduino Package Release
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -24,8 +22,8 @@ jobs:
         run: |
           set -eu
 
-          tag="${GITHUB_REF_NAME}"
-          version="${tag#v}"
+          version="$(sed -n '1{s/[[:space:]]//g;p;q;}' .version)"
+          tag="v${version}"
 
           case "${version}" in
             ""|v*)
@@ -46,27 +44,27 @@ jobs:
         id: package
         env:
           TAG_NAME: ${{ steps.version.outputs.tag }}
+          VERSION: ${{ steps.version.outputs.version }}
         shell: bash
         run: |
           set -eu
 
-          package_version="$(
-            sed -n 's/^version=//p' platform.txt | head -n 1
-          )"
+          platform_version="$(sed -n 's/^version=//p' platform.txt | head -n 1)"
+          if [ "${platform_version}" != "${VERSION}" ]; then
+            echo ".version ${VERSION} does not match platform.txt version ${platform_version}" >&2
+            exit 1
+          fi
 
           python3 scripts/package_arduino.py \
             --output-dir dist/arduino \
             --index-file package_rtbus_index.json \
             --base-url "https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG_NAME}"
 
-          package_archive="dist/arduino/rtduo-${package_version}.tar.gz"
-          package_index="dist/arduino/package_rtbus_index.json"
+          package_archive="dist/arduino/rtduo-${VERSION}.tar.gz"
 
           test -s "${package_archive}"
-          test -s "${package_index}"
 
           echo "archive=${package_archive}" >> "${GITHUB_OUTPUT}"
-          echo "index=${package_index}" >> "${GITHUB_OUTPUT}"
 
       - name: Create GitHub Release
         env:
@@ -94,12 +92,10 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG_NAME: ${{ steps.version.outputs.tag }}
           PACKAGE_ARCHIVE: ${{ steps.package.outputs.archive }}
-          PACKAGE_INDEX: ${{ steps.package.outputs.index }}
         shell: bash
         run: |
           set -eu
 
           gh release upload "${TAG_NAME}" \
             "${PACKAGE_ARCHIVE}" \
-            "${PACKAGE_INDEX}" \
             --repo "${GITHUB_REPOSITORY}"

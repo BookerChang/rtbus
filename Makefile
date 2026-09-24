@@ -8,7 +8,9 @@ ARDUINO_PACKAGE_ROOT ?= build.arduino/package
 ARDUINO_PACKAGE_DIR ?= $(ARDUINO_PACKAGE_ROOT)/hardware/rtbus/rtduo
 ARDUINO_DIST_DIR ?= dist/arduino
 ARDUINO_PACKAGE_INDEX ?= package_rtbus_index.json
-ARDUINO_PACKAGE_BASE_URL ?=
+ARDUINO_RELEASE_REPOSITORY ?= BookerChang/rtbus
+ARDUINO_RELEASE_VERSION ?= $(strip $(shell sed -n '1{s/[[:space:]]//g;p;q;}' .version 2>/dev/null))
+ARDUINO_PACKAGE_BASE_URL ?= https://github.com/$(ARDUINO_RELEASE_REPOSITORY)/releases/download/v$(ARDUINO_RELEASE_VERSION)
 ARDUINO_PACKAGE_TOOL_ARGS ?=
 ARDUINO_SKETCH ?= libraries/RTDuo/examples/HelloWorld
 ARDUINO_BUILD_ROOT ?= build.arduino
@@ -173,8 +175,10 @@ arduino.package.local:
 	cp -a cores variants libraries system boards.txt platform.txt programmers.txt $(ARDUINO_PACKAGE_DIR)/
 
 .PHONY: package.rtbus.index
-package.rtbus.index:
-	$(if $(strip $(ARDUINO_PACKAGE_BASE_URL)),scripts/package_rtbus_index.sh $(ARDUINO_PACKAGE_BASE_URL),scripts/package_rtbus_index.sh)
+package.rtbus.index: builder.image
+	@test -n "$(ARDUINO_RELEASE_VERSION)" || { echo ".version is required" >&2; exit 1; }
+	$(DOCKER_RUN) $(if $(strip $(ARDUINO_PACKAGE_BASE_URL)),scripts/package_rtbus_index.sh $(ARDUINO_PACKAGE_BASE_URL),scripts/package_rtbus_index.sh)
+	cp $(ARDUINO_DIST_DIR)/$(ARDUINO_PACKAGE_INDEX) $(ARDUINO_PACKAGE_INDEX)
 
 .PHONY: arduino.package.index
 arduino.package.index: package.rtbus.index
