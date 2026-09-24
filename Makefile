@@ -57,6 +57,7 @@ EMPTY :=
 SPACE := $(EMPTY) $(EMPTY)
 
 include docker/docker.mk
+include docker/github_ci.mk
 include runtime/zephyr/profiles.mk
 include select.mk
 

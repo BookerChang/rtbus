@@ -16,6 +16,7 @@
 #include <rtbus.h>
 #include <rtbus/cli.h>
 #include <rtbus/native_service.h>
+#include <rtbus/runtime_serial.h>
 #include <rtbus/ymodem.h>
 
 #include "runtime_abi.h"

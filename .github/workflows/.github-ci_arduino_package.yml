@@ -1,0 +1,105 @@
+name: Arduino Package Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Determine release version
+        id: version
+        shell: bash
+        run: |
+          set -eu
+
+          tag="${GITHUB_REF_NAME}"
+          version="${tag#v}"
+
+          case "${version}" in
+            ""|v*)
+              echo "Invalid release version: ${version}" >&2
+              exit 1
+              ;;
+          esac
+
+          if [[ ! "${version}" =~ ^[0-9A-Za-z._-]+$ ]]; then
+            echo "Invalid release version: ${version}" >&2
+            exit 1
+          fi
+
+          echo "tag=${tag}" >> "${GITHUB_OUTPUT}"
+          echo "version=${version}" >> "${GITHUB_OUTPUT}"
+
+      - name: Build Arduino package
+        id: package
+        env:
+          TAG_NAME: ${{ steps.version.outputs.tag }}
+        shell: bash
+        run: |
+          set -eu
+
+          package_version="$(
+            sed -n 's/^version=//p' platform.txt | head -n 1
+          )"
+
+          python3 scripts/package_arduino.py \
+            --output-dir dist/arduino \
+            --index-file package_rtbus_index.json \
+            --base-url "https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG_NAME}"
+
+          package_archive="dist/arduino/rtduo-${package_version}.tar.gz"
+          package_index="dist/arduino/package_rtbus_index.json"
+
+          test -s "${package_archive}"
+          test -s "${package_index}"
+
+          echo "archive=${package_archive}" >> "${GITHUB_OUTPUT}"
+          echo "index=${package_index}" >> "${GITHUB_OUTPUT}"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: ${{ steps.version.outputs.tag }}
+          VERSION: ${{ steps.version.outputs.version }}
+          TARGET_COMMITISH: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -eu
+
+          if gh release view "${TAG_NAME}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            echo "Release already exists for ${TAG_NAME}" >&2
+            exit 1
+          fi
+
+          gh release create "${TAG_NAME}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --target "${TARGET_COMMITISH}" \
+            --title "RTBus ${VERSION}" \
+            --notes "RTBus Arduino package release ${VERSION}."
+
+      - name: Upload release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: ${{ steps.version.outputs.tag }}
+          PACKAGE_ARCHIVE: ${{ steps.package.outputs.archive }}
+          PACKAGE_INDEX: ${{ steps.package.outputs.index }}
+        shell: bash
+        run: |
+          set -eu
+
+          gh release upload "${TAG_NAME}" \
+            "${PACKAGE_ARCHIVE}" \
+            "${PACKAGE_INDEX}" \
+            --repo "${GITHUB_REPOSITORY}"

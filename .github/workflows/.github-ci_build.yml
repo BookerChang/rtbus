@@ -1,4 +1,4 @@
-name: Test Local Runner
+name: Test Local Build
 
 on:
   workflow_dispatch:
@@ -12,15 +12,15 @@ jobs:
       uses: actions/checkout@v4
       with:
         submodules: false
+        persist-credentials: false
 
     - name: Show runner information
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         echo "Hello from local runner"
-        make ci.github.gh GH_ARGS="--version"
         whoami
         hostname
         uname -a
         pwd
         ls -la
+        make board.profile BOARD_PROFILE=rak4631
+        make runtime BOARD_PROFILE=rak4631
