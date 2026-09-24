@@ -177,7 +177,11 @@ arduino.package.local:
 .PHONY: package.rtbus.index
 package.rtbus.index: builder.image
 	@test -n "$(ARDUINO_RELEASE_VERSION)" || { echo ".version is required" >&2; exit 1; }
-	$(DOCKER_RUN) $(if $(strip $(ARDUINO_PACKAGE_BASE_URL)),scripts/package_rtbus_index.sh $(ARDUINO_PACKAGE_BASE_URL),scripts/package_rtbus_index.sh)
+	$(DOCKER_RUN) python3 scripts/package_arduino.py \
+		--output-dir $(ARDUINO_DIST_DIR) \
+		--index-file $(ARDUINO_PACKAGE_INDEX) \
+		--base-url "$(ARDUINO_PACKAGE_BASE_URL)" \
+		--version "$(ARDUINO_RELEASE_VERSION)"
 	cp $(ARDUINO_DIST_DIR)/$(ARDUINO_PACKAGE_INDEX) $(ARDUINO_PACKAGE_INDEX)
 
 .PHONY: arduino.package.index

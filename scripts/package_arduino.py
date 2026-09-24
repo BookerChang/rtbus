@@ -30,7 +30,7 @@ DEFAULT_VENDOR = "rtbus"
 DEFAULT_ARCHITECTURE = "rtduo"
 ARM_ZEPHYR_EABI_WINDOWS_URL = (
     "https://github.com/BookerChang/rtbus/releases/download/"
-    "tools-v0.0.1/arm-zephyr-eabi-1.0.1-windows-x86_64.zip"
+    "tools/arm-zephyr-eabi-1.0.1-windows-x86_64.zip"
 )
 
 
@@ -195,6 +195,24 @@ def copy_platform_tree(destination: Path) -> None:
             shutil.copy2(source, destination / optional)
 
 
+def set_platform_version(path: Path, version: str) -> None:
+    lines = path.read_text(encoding="utf-8").splitlines()
+    updated: list[str] = []
+    replaced = False
+
+    for line in lines:
+        if line.startswith("version="):
+            updated.append(f"version={version}")
+            replaced = True
+        else:
+            updated.append(line)
+
+    if not replaced:
+        updated.append(f"version={version}")
+
+    path.write_text("\n".join(updated) + "\n", encoding="utf-8")
+
+
 def make_tar_gz(source_dir: Path, archive_path: Path, root_name: str) -> None:
     archive_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -357,6 +375,7 @@ def main() -> int:
     parser.add_argument("--output-dir", default="dist/arduino")
     parser.add_argument("--index-file", default="package_rtbus_index.json")
     parser.add_argument("--base-url", default=None)
+    parser.add_argument("--version", default=None)
     parser.add_argument("--vendor", default=DEFAULT_VENDOR)
     parser.add_argument("--architecture", default=DEFAULT_ARCHITECTURE)
     parser.add_argument("--maintainer", default="RTBus contributors")
@@ -380,7 +399,7 @@ def main() -> int:
     base_url = args.base_url or file_base_url(output_dir)
 
     platform_props = read_properties(REPO_ROOT / "platform.txt")
-    version = platform_props.get("version", "0.1.0")
+    version = args.version or platform_props.get("version", "0.1.0")
     platform_name = platform_props.get("name", "RTDuo Arduino Platform")
     archive_name = f"{args.architecture}-{version}.tar.gz"
     archive_path = output_dir / archive_name
@@ -388,6 +407,7 @@ def main() -> int:
     with tempfile.TemporaryDirectory(prefix="rtduo-arduino-package-") as temp_name:
         package_root = Path(temp_name) / args.architecture
         copy_platform_tree(package_root)
+        set_platform_version(package_root / "platform.txt", version)
         make_tar_gz(package_root, archive_path, args.architecture)
 
     tools = [
