@@ -578,11 +578,11 @@ int main(int argc, char **argv)
     char version_build[32];
     char version[64];
 
-    if (argc != 12 && argc != 13 && argc != 15) {
+    if (argc != 12 && argc != 13 && argc != 14 && argc != 15) {
         fprintf(stderr,
                 "usage: %s <pack> <project> <payload.bin> <payload.out> <map> "
                 "<signed.bin> <signed.hex> <slot.txt> <name> <version> "
-                "<build> [export_dir] [raw.hex raw.elf export_dir]\n",
+                "<build> [export_dir] [raw.hex raw.elf [export_dir]]\n",
                 argv[0]);
         return 2;
     }

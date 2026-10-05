@@ -1,1 +1,1 @@
-#include "../../system/rtduo_startup.S"
+#include "../../system/startup.S"

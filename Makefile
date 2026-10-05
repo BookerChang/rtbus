@@ -4,7 +4,7 @@ VM ?= podman
 DOCKER_IMAGE ?= localhost/rtbus-zephyr:arm-1.0.0
 DOCKER_WORK ?= /workdir
 ARDUINO_CONFIG ?= arduino-cli.yaml
-ARDUINO_PACKAGE_ROOT ?= build.arduino/package
+ARDUINO_PACKAGE_ROOT ?= .arduino/package
 ARDUINO_PACKAGE_DIR ?= $(ARDUINO_PACKAGE_ROOT)/hardware/rtbus/rtduo
 ARDUINO_DIST_DIR ?= dist/arduino
 ARDUINO_PACKAGE_INDEX ?= package_rtbus_index.json
@@ -12,11 +12,11 @@ ARDUINO_RELEASE_REPOSITORY ?= BookerChang/rtbus
 ARDUINO_RELEASE_VERSION ?= $(strip $(shell sed -n '1{s/[[:space:]]//g;p;q;}' .version 2>/dev/null))
 ARDUINO_PACKAGE_BASE_URL ?= https://github.com/$(ARDUINO_RELEASE_REPOSITORY)/releases/download/v$(ARDUINO_RELEASE_VERSION)
 ARDUINO_PACKAGE_TOOL_ARGS ?=
-ARDUINO_SKETCH ?= libraries/RTDuo/examples/HelloWorld
-ARDUINO_BUILD_ROOT ?= build.arduino
+ARDUINO_SKETCH ?= libraries/RTDuo/development/Project
+ARDUINO_BUILD_ROOT ?= $(ARDUINO_SKETCH)/build
 BOOTLOADER ?= bootloader
 BOOTLOADER_APP_DIR ?= bootloader
-RUNTIME_APP_DIR ?= runtime/zephyr/runtime
+RUNTIME_APP_DIR ?= zephyr/runtime
 ZEPHYR_BUILD_ROOT ?= build.zephyr
 ZEPHYR_BUILD_TMP_ROOT ?= build.zephyr.tmp
 ZEPHYR_SHARE_ROOT ?= zephyr-share
@@ -34,7 +34,7 @@ ARDUINO_BOARD_ID_rak3172t := RAK3172T
 ARDUINO_BOARD_ID_rak4200 := RAK4200
 ARDUINO_BOARD_ID ?= $(ARDUINO_BOARD_ID_$(BOARD_PROFILE))
 ARDUINO_FQBN ?= rtbus:rtduo:$(ARDUINO_BOARD_ID)
-ARDUINO_APPLICATION_BUILD_DIR ?= $(ARDUINO_BUILD_ROOT)/$(BOARD_PROFILE)/application
+ARDUINO_APPLICATION_BUILD_DIR ?= $(ARDUINO_BUILD_ROOT)/$(ARDUINO_BOARD_ID)
 ARDUINO_SKETCH_NAME ?= $(notdir $(ARDUINO_SKETCH))
 ARDUINO_APPLICATION_JFLASH_HEX ?= $(ARDUINO_SKETCH_NAME).ino.signed.hex
 
@@ -50,17 +50,17 @@ JLINK_IP ?= 127.0.0.1:19020
 JLINK_IF ?= SWD
 JLINK_SPEED ?= 4000
 JLINK_ERASE_SCRIPT ?= /tmp/rtbus-jlink-erase.jlink
-RUNTIME_JFLASH_HEX ?= zephyr.signed.hex
-BOOTLOADER_JFLASH_HEX ?= zephyr.hex
+RUNTIME_JFLASH_HEX ?= $(notdir $(RUNTIME_PACKAGE_IMAGE))
+BOOTLOADER_JFLASH_HEX ?= $(notdir $(BOOTLOADER_PACKAGE_IMAGE))
 APPLICATION_JFLASH_HEX ?= application.signed.hex
-APPLICATION_FLASH_DIR ?= $(if $(wildcard $(ARDUINO_APPLICATION_BUILD_DIR)/$(ARDUINO_APPLICATION_JFLASH_HEX)),$(ARDUINO_APPLICATION_BUILD_DIR),$(APPLICATION_BUILD_DIR))
-APPLICATION_FLASH_HEX ?= $(if $(wildcard $(ARDUINO_APPLICATION_BUILD_DIR)/$(ARDUINO_APPLICATION_JFLASH_HEX)),$(ARDUINO_APPLICATION_JFLASH_HEX),$(APPLICATION_JFLASH_HEX))
+APPLICATION_FLASH_DIR ?= $(if $(filter arduino,$(APPLICATION_BACKEND)),$(ARDUINO_APPLICATION_BUILD_DIR),$(APPLICATION_BUILD_DIR))
+APPLICATION_FLASH_HEX ?= $(if $(filter arduino,$(APPLICATION_BACKEND)),$(ARDUINO_APPLICATION_JFLASH_HEX),$(APPLICATION_JFLASH_HEX))
 EMPTY :=
 SPACE := $(EMPTY) $(EMPTY)
 
 include docker/docker.mk
 include docker/github_ci.mk
-include runtime/zephyr/profiles.mk
+include zephyr/profiles.mk
 include select.mk
 
 ifneq ($(strip $(BOARD_PROFILE)),)
@@ -81,8 +81,8 @@ APPLICATION_BUILD_TMP_DIR ?= $(ZEPHYR_BUILD_TMP_ROOT)/application/$(BOARD_PROFIL
 APPLICATION_BUILD_DIR_DOCKER = $(call docker_path,$(APPLICATION_BUILD_DIR))
 APPLICATION_BUILD_TMP_DIR_DOCKER = $(call docker_path,$(APPLICATION_BUILD_TMP_DIR))
 
-include runtime/zephyr/runtime/runtime.mk
-include runtime/zephyr/bootloader.mk
+include zephyr/runtime/runtime.mk
+include zephyr/bootloader.mk
 
 DOCKER_RUN = $(VM) run --rm \
 	-v $(CURDIR):$(DOCKER_WORK) \
@@ -152,16 +152,18 @@ jlink_rttlog:
 .PHONY: jflash_write.runtime
 jflash_write.runtime:
 	$(JLINK_CMD).device $(JLINK_TARGET)
-	@test -f "$(RUNTIME_BUILD_DIR)/zephyr/$(RUNTIME_JFLASH_HEX)" || { echo "Missing $(RUNTIME_BUILD_DIR)/zephyr/$(RUNTIME_JFLASH_HEX). Rebuild runtime and ensure MCUboot image generation is enabled." >&2; exit 1; }
-	cd $(RUNTIME_BUILD_DIR)/zephyr && $(JLINK_CMD).write $(RUNTIME_JFLASH_HEX)
-	cd $(BOOTLOADER_BUILD_DIR)/zephyr && $(JLINK_CMD).write $(BOOTLOADER_JFLASH_HEX)
+	@test -s "$(dir $(RUNTIME_PACKAGE_IMAGE))$(RUNTIME_JFLASH_HEX)" || { echo "Missing runtime HEX. Rebuild runtime and ensure MCUboot image generation is enabled." >&2; exit 1; }
+	@test -s "$(dir $(BOOTLOADER_PACKAGE_IMAGE))$(BOOTLOADER_JFLASH_HEX)" || { echo "Missing bootloader HEX. Rebuild bootloader." >&2; exit 1; }
+	cd "$(dir $(RUNTIME_PACKAGE_IMAGE))" && $(JLINK_CMD).write "$(RUNTIME_JFLASH_HEX)"
+	cd "$(dir $(BOOTLOADER_PACKAGE_IMAGE))" && $(JLINK_CMD).write "$(BOOTLOADER_JFLASH_HEX)"
 	@echo "current time: $$(date +'%Y-%m-%d %H:%M:%S')"
 
 .PHONY: jflash_write.application
 jflash_write.application:
+	@test "$(APPLICATION_BACKEND)" = arduino -o "$(APPLICATION_BACKEND)" = gcc || { echo "Unsupported APPLICATION_BACKEND=$(APPLICATION_BACKEND). Use arduino or gcc." >&2; exit 1; }
+	@test -s "$(APPLICATION_FLASH_DIR)/$(APPLICATION_FLASH_HEX)" || { echo "Missing $(APPLICATION_FLASH_DIR)/$(APPLICATION_FLASH_HEX). Build application with the same BOARD_PROFILE, APPLICATION_BACKEND and ARDUINO_SKETCH." >&2; exit 1; }
 	$(JLINK_CMD).device $(JLINK_TARGET)
-	@test -f "$(APPLICATION_FLASH_DIR)/$(APPLICATION_FLASH_HEX)" || { echo "Missing $(APPLICATION_FLASH_DIR)/$(APPLICATION_FLASH_HEX). Rebuild with application for BOARD_PROFILE=$(BOARD_PROFILE)." >&2; exit 1; }
-	cd $(APPLICATION_FLASH_DIR) && $(JLINK_CMD).write $(APPLICATION_FLASH_HEX)
+	cd "$(APPLICATION_FLASH_DIR)" && $(JLINK_CMD).write "$(APPLICATION_FLASH_HEX)"
 	@echo "current time: $$(date +'%Y-%m-%d %H:%M:%S')"
 
 .PHONY: arduino.version
@@ -172,7 +174,7 @@ arduino.version: builder.image
 arduino.package.local:
 	rm -rf $(ARDUINO_PACKAGE_DIR)
 	mkdir -p $(ARDUINO_PACKAGE_DIR)
-	cp -a cores variants libraries system boards.txt platform.txt programmers.txt $(ARDUINO_PACKAGE_DIR)/
+	tar --exclude='build' --exclude='build.*' -cf - cores variants libraries system boards.txt platform.txt programmers.txt | tar -xf - -C $(ARDUINO_PACKAGE_DIR)
 
 .PHONY: package.rtbus.index
 package.rtbus.index: builder.image
@@ -200,10 +202,11 @@ application.arduino: builder.image arduino.package.local
 	$(DOCKER_RUN) arduino-cli --config-file $(ARDUINO_CONFIG) compile \
 		--verbose \
 		--fqbn $(ARDUINO_FQBN) \
-		--build-path $(DOCKER_WORK)/$(ARDUINO_APPLICATION_BUILD_DIR) \
+		--build-path "$(call docker_path,$(ARDUINO_APPLICATION_BUILD_DIR))" \
 		$(ARDUINO_LOCAL_BUILD_PROPERTIES) \
 		--build-property build.application.pack=true \
-		$(DOCKER_WORK)/$(ARDUINO_SKETCH)
+		--build-property "build.application.export.path=" \
+		"$(call docker_path,$(ARDUINO_SKETCH))"
 
 .PHONY: application.gcc
 application.gcc: builder.image
@@ -220,7 +223,7 @@ application.clean: application.$(APPLICATION_BACKEND).clean
 
 .PHONY: application.arduino.clean
 application.arduino.clean:
-	rm -rf $(ARDUINO_APPLICATION_BUILD_DIR)
+	rm -rf "$(ARDUINO_APPLICATION_BUILD_DIR)"
 
 .PHONY: application.gcc.clean
 application.gcc.clean:
@@ -235,4 +238,4 @@ application.%:
 
 .PHONY: arduino.clean
 arduino.clean:
-	rm -rf $(ARDUINO_BUILD_ROOT)
+	rm -rf "$(ARDUINO_BUILD_ROOT)" "$(ARDUINO_PACKAGE_DIR)"

@@ -28,8 +28,8 @@ boundaries, build rules, ABI-facing code, or module structure.
 
 The goal is to form RTBus as a Zephyr subsystem. The Zephyr runtime application
 should stay thin, while RTBus-owned runtime behavior lives under
-`runtime/zephyr/modules/rtbus/`. Do not move RTBus runtime loop or native
-service bootstrap logic back into `runtime/zephyr/runtime/src/main.c`.
+`zephyr/modules/rtbus/`. Do not move RTBus runtime loop or native
+service bootstrap logic back into `zephyr/runtime/src/main.c`.
 
 Current RTBus subsystem split:
 
@@ -65,15 +65,18 @@ future RTBus task event handling.
 ## Main Areas
 
 - `cores/`, `variants/`, `libraries/`, `system/`: Arduino platform sources.
-- `runtime/zephyr/`: open-source Zephyr runtime baseline.
-- `runtime/zephyr/runtime/`: RTBus runtime firmware.
-- `runtime/zephyr/bootloader.mk`: MCUboot build wrapper.
+- `zephyr/`: RTBus Zephyr runtime integration.
+- `zephyr/runtime/`: RTBus runtime firmware.
+- `zephyr/bootloader.mk`: MCUboot build wrapper.
 - `bootloader/mcuboot/`: west-provided MCUboot source.
 - `application.mk`: standalone native C application build path.
 - `cores/<profile>/main.c`: Arduino and standalone native application entry,
   selected by the standard Arduino `ARDUINO` macro.
-- `bootloader/`, `zephyr/`, `modules/`: upstream or vendored platform pieces.
-- `build.arduino/`, `build.zephyr/`, `build.zephyr.tmp/`: generated build output.
+- `bootloader/`, `modules/`: upstream or vendored platform pieces.
+- `.arduino/package/`: local Arduino SDK staging.
+- `<sketch>/build/<BOARD>/`: Arduino application build output.
+- `cores/<profile>/firmware/build.*/`: runtime and bootloader build output.
+- `build.zephyr/`, `build.zephyr.tmp/`: standalone native application build output.
 
 ## Supported Board Profiles
 

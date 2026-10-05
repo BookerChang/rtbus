@@ -23,4 +23,4 @@ jobs:
         pwd
         ls -la
         make board.profile BOARD_PROFILE=rak4631
-        make runtime BOARD_PROFILE=rak4631
+        make application bootloader runtime BOARD_PROFILE=rak4631

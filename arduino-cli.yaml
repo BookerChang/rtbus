@@ -1,7 +1,7 @@
 directories:
   data: .arduino/data
   downloads: .arduino/downloads
-  user: build.arduino/package
+  user: .arduino/package
 
 board_manager:
   additional_urls: []

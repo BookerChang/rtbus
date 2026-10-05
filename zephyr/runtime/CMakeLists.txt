@@ -48,6 +48,6 @@ target_sources_ifdef(CONFIG_NORDIC_HV_REGOUT0_3V3 app PRIVATE
 )
 
 zephyr_include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../system/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../system/include
     include
 )

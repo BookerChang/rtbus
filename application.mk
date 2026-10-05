@@ -22,7 +22,7 @@ include $(PROFILE_MK)
 
 BUILD_DIR ?= $(REPO_ROOT)/build.rtbus.application.$(BOARD_PROFILE)
 SRC ?= $(PROFILE_DIR)/main.c
-STARTUP_SRC ?= $(SYSTEM_DIR)/rtduo_startup.S
+STARTUP_SRC ?= $(SYSTEM_DIR)/startup.S
 CORE_SOURCES ?= $(PROFILE_DIR)/wiring_time.c
 LD_SCRIPT ?= $(PROFILE_DIR)/linker.ld
 ABI_INCLUDE ?= $(SYSTEM_DIR)/include

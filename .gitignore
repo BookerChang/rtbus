@@ -6,13 +6,14 @@
 /bootloader/
 /modules/
 /tools/
-/zephyr/
 build*/
 dist/
-runtime/zephyr/runtime/.generated/
+zephyr/runtime/.generated/
 zephyr-share/
 *.elf
 *.hex
+!/cores/*/firmware/bootloader.hex
+!/cores/*/firmware/runtime.signed.hex
 *.bin
 *.map
 *.lst

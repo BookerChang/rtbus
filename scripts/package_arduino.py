@@ -185,7 +185,8 @@ def copy_platform_tree(destination: Path) -> None:
         target = destination / name
 
         if source.is_dir():
-            shutil.copytree(source, target, symlinks=False)
+            shutil.copytree(source, target, symlinks=False,
+                            ignore=shutil.ignore_patterns("build", "build.*"))
         else:
             shutil.copy2(source, target)
 

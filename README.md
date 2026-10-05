@@ -116,7 +116,7 @@ updated independently.
 ## Board Profiles
 
 The build is selected with `BOARD_PROFILE=<profile>`. Current active profiles
-are defined by `runtime/zephyr/profiles.mk`:
+are defined by `zephyr/profiles.mk`:
 
 - `rak4631`
 - `rak3172p`
@@ -146,18 +146,19 @@ List Arduino boards exposed by the local package:
 make arduino.boards
 ```
 
-Build the default Arduino sketch:
+Build the default Project development sketch at
+`libraries/RTDuo/development/Project/` (kept outside the Arduino IDE examples menu):
 
 ```sh
 make application BOARD_PROFILE=rak4631
 ```
 
-Build another sketch:
+Build the simple HelloWorld sketch instead:
 
 ```sh
 make application \
-  BOARD_PROFILE=rak3172p \
-  ARDUINO_SKETCH=libraries/RTDuo/examples/arduino
+  BOARD_PROFILE=rak4631 \
+  ARDUINO_SKETCH=libraries/RTDuo/examples/HelloWorld
 ```
 
 Build runtime, bootloader, or the native application path:
@@ -168,11 +169,27 @@ make bootloader BOARD_PROFILE=rak4631
 make application BOARD_PROFILE=rak4631
 ```
 
-Runtime artifacts are exported under:
+Runtime and bootloader builds are exported under:
 
 ```text
-zephyr-share/runtime/<profile>/
+cores/<profile>/firmware/build.runtime/
+cores/<profile>/firmware/build.bootloader/
 ```
+
+For each board profile, successful bootloader and runtime builds also export the SDK
+firmware images to:
+
+```text
+cores/<profile>/firmware/bootloader.hex
+cores/<profile>/firmware/runtime.signed.hex
+```
+
+These two files can be committed and pushed with the SDK sources. The Arduino
+package includes them when it copies `cores/`; package creation does not build
+firmware. Full build and diagnostic artifacts live in the firmware directory's
+`build.runtime/` and `build.bootloader/` subdirectories, which are ignored by
+Git and excluded from Arduino packages. J-Link flashing uses the two top-level
+HEX images. Cleaning runtime build output preserves the SDK images.
 
 Generated Arduino and Zephyr build outputs are ignored by git.
 
@@ -182,7 +199,7 @@ The Zephyr runtime app is intentionally thin. RTBus-owned runtime behavior lives
 under:
 
 ```text
-runtime/zephyr/modules/rtbus/
+zephyr/modules/rtbus/
 ```
 
 Important runtime pieces:
@@ -251,7 +268,7 @@ cores/<profile>/zephyr/bootloader.conf
 The Makefile stages this repository as a local Arduino package at:
 
 ```text
-build.arduino/package/hardware/rtbus/rtduo
+.arduino/package/hardware/rtbus/rtduo
 ```
 
 Main source areas:
@@ -260,8 +277,8 @@ Main source areas:
 - `variants/`: Arduino variant headers.
 - `libraries/`: Arduino libraries and examples.
 - `system/`: ABI headers, image header generation, and upload tooling.
-- `runtime/zephyr/runtime/`: thin Zephyr runtime application.
-- `runtime/zephyr/modules/rtbus/`: RTBus subsystem implementation.
+- `zephyr/runtime/`: thin Zephyr runtime application.
+- `zephyr/modules/rtbus/`: RTBus subsystem implementation.
 
 ## Status
 
